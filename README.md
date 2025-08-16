@@ -1,30 +1,355 @@
 # Apple-Match-for-Ashley
 Creating an interesting game only for my love, Ashley. Hope her happy everyday!
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>💕 Ashley的专属苹果消消乐</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ashley's Apple Match - 专属苹果消消乐</title>
     <style>
+        /* 基础重置和移动端优化 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
         }
-        
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: fixed;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh; /* 新的动态视口单位 */
+        }
+
+        /* 屏幕容器 - 响应式设计 */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            height: 100vh;
+            height: 100dvh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 主菜单样式 */
+        #mainMenu {
+            justify-content: center;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: clamp(2rem, 8vw, 4rem);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        /* 响应式按钮 */
+        .menu-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            font-weight: bold;
+            margin: 0.5rem;
+            padding: clamp(0.8rem, 3vw, 1.2rem) clamp(1.5rem, 6vw, 2.5rem);
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            min-height: 44px; /* iOS触控最小高度 */
+            min-width: 120px;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* 关卡选择界面 */
+        #levelSelect {
+            padding: 1rem;
+        }
+
+        .level-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .level-button {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-height: 120px;
+        }
+
+        .level-button:active {
+            transform: scale(0.98);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .level-button.special {
+            background: linear-gradient(135deg, rgba(255,182,193,0.3), rgba(255,160,122,0.3));
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
+
+        .love-quote {
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+
+        /* 游戏界面 */
+        #gameScreen {
+            padding: 0.5rem;
+        }
+
+        .game-header {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0 0.5rem;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* 游戏网格 - 关键修复 */
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100vw;
+            overflow: hidden;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            /* 响应式网格大小 */
+            width: min(90vw, 400px);
+            height: min(90vw, 400px);
+            max-width: 400px;
+            max-height: 400px;
+        }
+
+        .grid-cell {
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+            aspect-ratio: 1; /* 保持正方形 */
+            min-height: 40px;
+        }
+
+        .grid-cell:active {
+            transform: scale(0.95);
+        }
+
+        .grid-cell.selected {
+            background: #ffd700 !important;
+            box-shadow: 0 0 15px rgba(255,215,0,0.8);
+        }
+
+        .apple-icon {
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            transition: transform 0.2s ease;
+        }
+
+        .grid-cell:active .apple-icon {
+            transform: scale(1.1);
+        }
+
+        /* 道具栏 - 优化布局 */
+        .power-ups {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .power-up {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            padding: 0.8rem 0.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            backdrop-filter: blur(5px);
+            position: relative;
+            min-height: 60px;
+        }
+
+        .power-up:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .power-up.active {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.3);
+            box-shadow: 0 0 15px rgba(255,215,0,0.5);
+        }
+
+        .power-up .count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+            height: 20px;
+            line-height: 20px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* 控制按钮 */
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: auto;
+            padding: 1rem 0;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            min-height: 40px;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* 弹窗样式 */
+        .popup, .pause-menu, .achievement-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .popup-content, .pause-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .achievement-popup {
+            align-items: flex-start;
+            padding-top: 60px;
+        }
+
+        .achievement-popup.show {
+            display: flex;
+        }
+
+        .achievement-content {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transform: translateY(-20px);
+            animation: achievementSlide 0.5s ease-out forwards;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes achievementSlide {
+            to { transform: translateY(0); }
+        }
+
+        /* 背景效果 */
         .hearts-background {
             position: fixed;
             top: 0;
@@ -32,680 +357,216 @@ Creating an interesting game only for my love, Ashley. Hope her happy everyday!
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 1;
+            z-index: -1;
+            overflow: hidden;
         }
-        
+
         .heart {
             position: absolute;
             font-size: 1.5rem;
-            animation: floatHeart 8s linear infinite;
-            opacity: 0.6;
-        }
-        
-        @keyframes floatHeart {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.6;
-            }
-            90% {
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(-50px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-        
-        .screen {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            position: relative;
-            z-index: 10;
-        }
-        
-        .main-menu {
-            text-align: center;
-            color: white;
-        }
-        
-        .title {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            animation: titleGlow 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes titleGlow {
-            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,182,193,0.4); }
-            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 30px rgba(255,182,193,0.8); }
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-        }
-        
-        .menu-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            min-width: 200px;
-        }
-        
-        .menu-btn {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 25px;
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .menu-btn:hover, .menu-btn:active {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        
-        .level-select {
-            display: none;
-            padding: 1rem;
-            max-width: 1000px;
-            width: 100%;
-        }
-        
-        .level-header {
-            text-align: center;
-            color: white;
-            margin-bottom: 2rem;
-        }
-        
-        .level-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .level-button {
-            padding: 1.5rem;
-            border: none;
-            border-radius: 15px;
-            background: linear-gradient(135deg, #74b9ff, #0984e3);
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .level-button.special {
-            background: linear-gradient(135deg, #fd79a8, #e84393);
-            animation: specialPulse 2s ease-in-out infinite alternate;
-        }
-        
-        .level-button.practice {
-            background: linear-gradient(135deg, #55a3ff, #003d82);
-            border: 2px solid #ffd700;
-        }
-        
-        @keyframes specialPulse {
-            from { box-shadow: 0 4px 15px rgba(0,0,0,0.2), 0 0 20px rgba(253,121,168,0.3); }
-            to { box-shadow: 0 6px 25px rgba(0,0,0,0.3), 0 0 30px rgba(253,121,168,0.6); }
-        }
-        
-        .level-button:hover, .level-button:active {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-        
-        .love-quote {
-            font-style: italic;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            opacity: 0.9;
-        }
-        
-        .game-screen {
-            display: none;
-            padding: 1rem;
-            max-width: 600px;
-            width: 100%;
-        }
-        
-        .game-header {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            color: white;
-        }
-        
-        .stat-item {
-            text-align: center;
-            background: rgba(255,255,255,0.1);
-            padding: 0.8rem 0.5rem;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .stat-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-        
-        .stat-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-top: 0.2rem;
-        }
-        
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 2px;
-            background: rgba(255,255,255,0.1);
-            padding: 8px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            width: 100%;
-            max-width: 400px;
-            aspect-ratio: 1;
-            position: relative;
-        }
-        
-        .grid-cell {
-            background: #ffffff;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            touch-action: manipulation;
-        }
-        
-        .grid-cell:hover {
-            background: #f0f8ff;
-        }
-        
-        .grid-cell.selected {
-            background: #ffd700 !important;
-            box-shadow: 0 0 10px rgba(255,215,0,0.6);
-            transform: scale(1.05);
-        }
-        
-        .grid-cell.special-item {
-            background: linear-gradient(45deg, #ffd700, #ff6b6b);
-            animation: specialGlow 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes specialGlow {
-            from { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
-            to { box-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 30px rgba(255,107,107,0.4); }
-        }
-        
-        .apple-icon {
-            font-size: 1.8rem;
-            transition: all 0.2s ease;
-        }
-        
-        .power-ups {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .power-up {
-            background: rgba(255,255,255,0.9);
-            border-radius: 10px;
-            padding: 0.8rem 0.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            touch-action: manipulation;
-        }
-        
-        .power-up:hover, .power-up:active {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .power-up.active {
-            background: #4CAF50;
-            color: white;
-            box-shadow: 0 0 20px rgba(76,175,80,0.5);
-        }
-        
-        .power-up .icon {
-            font-size: 1.2rem;
-            margin-bottom: 0.2rem;
-        }
-        
-        .power-up .name {
-            font-size: 0.8rem;
-            font-weight: bold;
-            margin-bottom: 0.2rem;
-        }
-        
-        .power-up .count {
-            background: #ff6b6b;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            position: absolute;
-            top: -5px;
-            right: -5px;
-        }
-        
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-            width: 100%;
-            max-width: 400px;
-            margin-top: 1rem;
-        }
-        
-        .control-btn {
-            padding: 0.8rem 1rem;
-            border: none;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            touch-action: manipulation;
-        }
-        
-        .control-btn.secondary {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .control-btn:hover, .control-btn:active {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-        
-        .pause-menu {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .pause-content {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 2rem;
-            border-radius: 20px;
-            text-align: center;
-            color: white;
-            max-width: 90vw;
-        }
-        
-        .pause-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        
-        .combo-display {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255,107,107,0.9);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            z-index: 100;
-            animation: comboPop 1s ease-out forwards;
+            opacity: 0.3;
+            animation: heartFloat 8s linear infinite;
             pointer-events: none;
         }
-        
-        @keyframes comboPop {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            50% { transform: translate(-50%, -50%) scale(1.2); }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+
+        @keyframes heartFloat {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-50px) rotate(360deg); opacity: 0; }
         }
-        
-        .achievement-popup {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100%);
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            z-index: 999;
-            text-align: center;
-            transition: transform 0.5s ease;
-            max-width: 90vw;
-        }
-        
-        .achievement-popup.show {
-            transform: translateX(-50%) translateY(0);
-        }
-        
+
+        /* 媒体查询 - 不同设备优化 */
         @media (max-width: 480px) {
-            .title {
-                font-size: 2rem;
+            .game-grid {
+                width: 95vw;
+                height: 95vw;
+                max-width: 350px;
+                max-height: 350px;
             }
             
-            .game-header {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: repeat(2, 1fr);
+            .level-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
             }
             
             .power-ups {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(6, 1fr);
+                gap: 0.3rem;
             }
             
-            .controls {
-                grid-template-columns: 1fr;
+            .power-up {
+                font-size: 0.7rem;
+                padding: 0.5rem 0.3rem;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            .game-grid {
+                width: min(60vh, 350px);
+                height: min(60vh, 350px);
             }
             
-            .apple-icon {
-                font-size: 1.4rem;
+            .screen {
+                padding: 0.5rem;
             }
         }
-        
-        /* 游戏说明弹窗样式 */
-        .game-guide {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .guide-content {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 2rem;
-            border-radius: 20px;
-            color: white;
-            max-width: 90vw;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .guide-section {
-            margin-bottom: 1.5rem;
-        }
-        
-        .guide-section h3 {
-            margin-bottom: 0.8rem;
-            color: #ffd700;
-        }
-        
-        .guide-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.8rem;
-            padding: 0.5rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-        
-        .guide-icon {
-            font-size: 1.5rem;
-            margin-right: 1rem;
-            min-width: 40px;
-            text-align: center;
-        }
-        
-        .guide-text {
-            flex: 1;
-        }
-        
-        .guide-title {
-            font-weight: bold;
-            margin-bottom: 0.2rem;
-        }
-        
-        .guide-desc {
-            font-size: 0.9rem;
-            opacity: 0.9;
+
+        /* iOS安全区域适配 */
+        @supports (padding: max(0px)) {
+            .screen {
+                padding-left: max(env(safe-area-inset-left), 1rem);
+                padding-right: max(env(safe-area-inset-right), 1rem);
+                padding-top: max(env(safe-area-inset-top), 1rem);
+                padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 爱心背景 -->
-    <div class="hearts-background" id="heartsBackground"></div>
+    <!-- 背景爱心效果 -->
+    <div id="heartsBackground" class="hearts-background"></div>
     
+    <!-- 特殊日期效果 -->
+    <div id="specialDateEffect" class="hearts-background"></div>
+
     <!-- 主菜单 -->
-    <div class="screen main-menu" id="mainMenu">
-        <h1 class="title">🍎💕 Ashley的专属苹果消消乐</h1>
-        <p class="subtitle">为最美丽的你量身定制 ✨</p>
-        <div class="menu-buttons">
-            <button class="menu-btn" onclick="showLevelSelect()">开始游戏 🎮</button>
-            <button class="menu-btn" onclick="showAchievements()">成就系统 🏆</button>
-            <button class="menu-btn" onclick="showLoveMessages()">专属情话 💕</button>
-            <button class="menu-btn" onclick="showSettings()">游戏说明 ⚙️</button>
-        </div>
+    <div id="mainMenu" class="screen" style="display: flex;">
+        <div class="logo">🍎💕 Ashley's Apple Match 💕🍎</div>
+        <div class="subtitle">专属于你的苹果消消乐</div>
+        
+        <button class="menu-btn" onclick="showScreen('levelSelect')">开始游戏 🎮</button>
+        <button class="menu-btn" onclick="showAchievements()">成就系统 🏆</button>
+        <button class="menu-btn" onclick="showLoveMessages()">专属情话 💕</button>
+        <button class="menu-btn" onclick="showGameGuide()">游戏说明 📖</button>
+        <button class="menu-btn" onclick="showSettings()">设置 ⚙️</button>
     </div>
-    
-    <!-- 选关界面 -->
-    <div class="screen level-select" id="levelSelect">
+
+    <!-- 关卡选择 -->
+    <div id="levelSelect" class="screen">
         <div class="level-header">
-            <h2 style="margin-bottom: 0.5rem;">选择关卡</h2>
-            <p>每一关都有专属的爱情话语 💖</p>
-            <button class="menu-btn" onclick="backToMainMenu()" style="margin: 1rem auto; display: block; max-width: 200px;">返回主菜单 ⬅️</button>
+            <h2 style="margin-bottom: 0.5rem;">🍎 选择关卡 🍎</h2>
+            <p>为我的宝贝Ashley量身定制</p>
+            <button class="control-btn" onclick="showScreen('mainMenu')" style="margin-top: 1rem;">
+                返回主菜单 🏠
+            </button>
         </div>
-        <div class="level-grid" id="levelGrid"></div>
+        <div id="levelGrid" class="level-grid"></div>
     </div>
-    
+
     <!-- 游戏界面 -->
-    <div class="screen game-screen" id="gameScreen">
-        <!-- 游戏状态栏 -->
+    <div id="gameScreen" class="screen">
+        <!-- 游戏头部信息 -->
         <div class="game-header">
             <div class="stat-item">
-                <div class="stat-label">关卡</div>
                 <div class="stat-value" id="currentLevel">1</div>
+                <div>关卡</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">得分</div>
                 <div class="stat-value" id="score">0</div>
+                <div>得分</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">目标</div>
                 <div class="stat-value" id="target">1000</div>
+                <div>目标</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">剩余步数</div>
-                <div class="stat-value" id="moves">250</div>
+                <div class="stat-value" id="moves">30</div>
+                <div>步数</div>
             </div>
         </div>
-        
+
+        <!-- 游戏容器 -->
         <div class="game-container">
             <!-- 游戏网格 -->
-            <div class="game-grid" id="gameGrid"></div>
-            
+            <div id="gameGrid" class="game-grid"></div>
+
             <!-- 道具栏 -->
-            <div class="power-ups" id="powerUps">
+            <div class="power-ups">
                 <div class="power-up" data-power="bomb">
-                    <div class="icon">💥</div>
-                    <div class="name">炸弹</div>
-                    <div class="count">10</div>
+                    💥<br>炸弹
+                    <span class="count">5</span>
                 </div>
                 <div class="power-up" data-power="lightning">
-                    <div class="icon">⚡</div>
-                    <div class="name">闪电</div>
-                    <div class="count">10</div>
+                    ⚡<br>闪电
+                    <span class="count">5</span>
                 </div>
                 <div class="power-up" data-power="rainbow">
-                    <div class="icon">🌈</div>
-                    <div class="name">彩虹</div>
-                    <div class="count">8</div>
+                    🌈<br>彩虹
+                    <span class="count">3</span>
                 </div>
                 <div class="power-up" data-power="hammer">
-                    <div class="icon">🔨</div>
-                    <div class="name">锤子</div>
-                    <div class="count">15</div>
+                    🔨<br>锤子
+                    <span class="count">8</span>
                 </div>
                 <div class="power-up" data-power="shuffle">
-                    <div class="icon">🔄</div>
-                    <div class="name">洗牌</div>
-                    <div class="count">8</div>
+                    🔄<br>洗牌
+                    <span class="count">3</span>
                 </div>
                 <div class="power-up" data-power="time">
-                    <div class="icon">⏰</div>
-                    <div class="name">时光</div>
-                    <div class="count">8</div>
+                    ⏰<br>时光
+                    <span class="count">3</span>
                 </div>
             </div>
-            
-            <!-- 控制按钮 -->
-            <div class="controls">
-                <button class="control-btn secondary" onclick="showGameGuide()">游戏说明 📖</button>
-                <button class="control-btn secondary" onclick="showHint()">提示 💡</button>
-                <button class="control-btn secondary" onclick="pauseGame()">暂停 ⏸️</button>
-                <button class="control-btn secondary" onclick="restartLevel()">重新开始 🔄</button>
-                <button class="control-btn secondary" onclick="backToLevelSelect()">返回选关 ⬅️</button>
-            </div>
+        </div>
+
+        <!-- 游戏控制 -->
+        <div class="game-controls">
+            <button class="control-btn" onclick="pauseGame()">暂停 ⏸️</button>
+            <button class="control-btn" onclick="showHint()">提示 💡</button>
+            <button class="control-btn" onclick="restartLevel()">重来 🔄</button>
         </div>
     </div>
-    
+
     <!-- 暂停菜单 -->
-    <div class="pause-menu" id="pauseMenu">
-        <div class="pause-content">
-            <h3>游戏暂停</h3>
-            <div class="pause-buttons">
-                <button class="menu-btn" onclick="resumeGame()">继续游戏 ▶️</button>
-                <button class="menu-btn" onclick="restartLevel()">重新开始 🔄</button>
-                <button class="menu-btn" onclick="backToLevelSelect()">返回选关 ⬅️</button>
-                <button class="menu-btn" onclick="backToMainMenu()">主菜单 🏠</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 游戏说明弹窗 -->
-    <div class="game-guide" id="gameGuide">
-        <div class="guide-content">
-            <h2 style="text-align: center; margin-bottom: 1.5rem; color: #ffd700;">🎮 游戏说明</h2>
-            
-            <div class="guide-section">
-                <h3>🎯 游戏目标</h3>
-                <p style="margin-bottom: 1rem;">交换相邻的苹果，消除3个或更多相同的苹果来获得分数，达到目标分数即可过关！</p>
-            </div>
-            
-            <div class="guide-section">
-                <h3>🔧 道具详解</h3>
-                <div class="guide-item">
-                    <div class="guide-icon">💥</div>
-                    <div class="guide-text">
-                        <div class="guide-title">炸弹</div>
-                        <div class="guide-desc">消除以点击位置为中心的3×3范围内的所有苹果</div>
-                    </div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-icon">⚡</div>
-                    <div class="guide-text">
-                        <div class="guide-title">闪电</div>
-                        <div class="guide-desc">同时消除点击位置的整行和整列苹果</div>
-                    </div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-icon">🌈</div>
-                    <div class="guide-text">
-                        <div class="guide-title">彩虹</div>
-                        <div class="guide-desc">消除与点击苹果相同类型的所有苹果</div>
-                    </div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-icon">🔨</div>
-                    <div class="guide-text">
-                        <div class="guide-title">锤子</div>
-                        <div class="guide-desc">消除单个指定位置的苹果</div>
-                    </div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-icon">🔄</div>
-                    <div class="guide-text">
-                        <div class="guide-title">洗牌</div>
-                        <div class="guide-desc">重新打乱整个棋盘的苹果排列</div>
-                    </div>
-                </div>
-                <div class="guide-item">
-                    <div class="guide-icon">⏰</div>
-                    <div class="guide-text">
-                        <div class="guide-title">时光</div>
-                        <div class="guide-desc">增加50步额外的移动步数</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="guide-section">
-                <h3>🏆 连击技巧</h3>
-                <p style="margin-bottom: 1rem;">连续消除会产生连击奖励！连击越高，分数加成越多。尝试寻找连锁反应的机会，创造更高连击！</p>
-            </div>
-            
-            <div style="text-align: center; margin-top: 2rem;">
-                <button class="menu-btn" onclick="closeGameGuide()">知道了 ✅</button>
-            </div>
-        </div>
-    </div>
-    
+    <div id="pauseMenu" class="pause-menu"></div>
+
     <!-- 成就弹窗 -->
-    <div class="achievement-popup" id="achievementPopup">
-        <div id="achievementText"></div>
+    <div id="achievementPopup" class="achievement-popup">
+        <div class="achievement-content">
+            <div id="achievementText"></div>
+        </div>
     </div>
-    
-    <!-- 特殊日期效果容器 -->
-    <div id="specialDateEffect" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;"></div>
+
+    <!-- 游戏说明弹窗 -->
+    <div id="gameGuide" class="popup">
+        <div class="popup-content">
+            <h2 style="margin-bottom: 1.5rem; color: #ffd700;">📖 游戏说明</h2>
+            
+            <div style="text-align: left; margin-bottom: 2rem;">
+                <h3 style="color: #ffd700; margin-bottom: 1rem;">🎯 基本玩法</h3>
+                <p style="margin-bottom: 1rem;">• 交换相邻的苹果，形成3个或更多相同的苹果连线</p>
+                <p style="margin-bottom: 1rem;">• 可以水平或垂直连线，达成目标分数即可过关</p>
+                <p style="margin-bottom: 1rem;">• 连击越多，分数加成越高！</p>
+                
+                <h3 style="color: #ffd700; margin: 1.5rem 0 1rem;">🔧 道具说明</h3>
+                <div style="display: grid; gap: 0.8rem;">
+                    <div>💥 <strong>炸弹</strong> - 消除3×3范围内所有苹果</div>
+                    <div>⚡ <strong>闪电</strong> - 消除整行整列苹果</div>
+                    <div>🌈 <strong>彩虹</strong> - 消除所有相同类型的苹果</div>
+                    <div>🔨 <strong>锤子</strong> - 消除单个苹果</div>
+                    <div>🔄 <strong>洗牌</strong> - 重新排列棋盘</div>
+                    <div>⏰ <strong>时光</strong> - 增加20步数</div>
+                </div>
+                
+                <h3 style="color: #ffd700; margin: 1.5rem 0 1rem;">💡 游戏技巧</h3>
+                <p style="margin-bottom: 0.5rem;">• 优先寻找能形成连击的位置</p>
+                <p style="margin-bottom: 0.5rem;">• 合理使用道具，特别是在困难时刻</p>
+                <p style="margin-bottom: 0.5rem;">• 观察整个棋盘，寻找最佳移动策略</p>
+                <p>• 练习模式可以无限练习，熟悉游戏机制</p>
+            </div>
+            
+            <button class="menu-btn" onclick="closeGameGuide()">开始游戏 💕</button>
+        </div>
+    </div>
 
 <script>
-// 继续第二部分...
-// 游戏状态
+// 游戏状态 - 调整难度平衡
 const gameState = {
     grid: [],
     score: 0,
     target: 1000,
-    moves: 250,
+    moves: 30,
     currentLevel: 1,
     selectedCell: null,
     isGameActive: false,
@@ -716,14 +577,13 @@ const gameState = {
     soundEnabled: true,
     activePowerUp: null,
     powerUps: {
-        bomb: 10,       // 炸弹增加到10个
-        lightning: 10,  // 闪电增加到10个
-        rainbow: 8,     // 彩虹增加到8个
-        hammer: 15,     // 锤子增加到15个
-        shuffle: 8,     // 洗牌增加到8个
-        time: 8         // 时光增加到8个
+        bomb: 5,       // 炸弹数量调回合理值
+        lightning: 5,  // 闪电数量调回合理值
+        rainbow: 3,    // 彩虹保持稀缺
+        hammer: 8,     // 锤子适中
+        shuffle: 3,    // 洗牌保持稀缺
+        time: 3        // 时光保持稀缺
     },
-    // 统计数据
     achievements: new Set(),
     totalScore: 0,
     gamesPlayed: 0,
@@ -740,119 +600,119 @@ const APPLE_TYPES = [
     { emoji: '🍑', class: 'cherry-apple', type: 'cherry' }
 ];
 
-// 关卡配置（增加初始步数10倍，提高连击概率）
+// 关卡配置 - 调整为更合理的难度曲线
 const LEVELS = [
     {
         id: 1,
         target: 1000,
-        moves: 300,    // 从30增加到300
+        moves: 50,    // 适当增加但不过分
         quote: "就像消除这些苹果一样，我想消除你所有的烦恼 💕",
         difficulty: 'easy',
-        specialApples: 0.1,
-        comboBoost: 1.5    // 增加连击概率
+        specialApples: 0.05,    // 降低特殊苹果概率
+        comboBoost: 1.1         // 降低连击加成
     },
     {
         id: 2,
         target: 1500,
-        moves: 350,    // 从35增加到350
+        moves: 55,
         quote: "每一次匹配，都像我们心灵的契合 ✨",
         difficulty: 'easy',
-        specialApples: 0.15,
-        comboBoost: 1.4
+        specialApples: 0.05,
+        comboBoost: 1.1
     },
     {
         id: 3,
         target: 2000,
-        moves: 400,    // 从40增加到400
+        moves: 60,
         quote: "红苹果是我的心，绿苹果是我们的希望 🍎💚",
         difficulty: 'normal',
         special: true,
-        specialApples: 0.2,
-        comboBoost: 1.6
+        specialApples: 0.08,
+        comboBoost: 1.2
     },
     {
         id: 4,
         target: 2500,
-        moves: 450,    // 从45增加到450
+        moves: 65,
         quote: "就算有再多挑战，我也要和你一起闯关 💪💕",
         difficulty: 'normal',
-        specialApples: 0.15,
-        comboBoost: 1.3
+        specialApples: 0.06,
+        comboBoost: 1.15
     },
     {
         id: 5,
         target: 3000,
-        moves: 500,    // 从50增加到500
+        moves: 70,
         quote: "五关了呢，就像我们认识的第五个月一样美好 🌸",
         difficulty: 'normal',
-        specialApples: 0.2,
-        comboBoost: 1.5
+        specialApples: 0.08,
+        comboBoost: 1.2
     },
     {
         id: 6,
         target: 3500,
-        moves: 550,    // 从55增加到550
+        moves: 75,
         quote: "六六大顺，希望我们的爱情也六六大顺 🍀",
         difficulty: 'hard',
-        specialApples: 0.25,
-        comboBoost: 1.7
+        specialApples: 0.1,
+        comboBoost: 1.25
     },
     {
         id: 7,
         target: 4000,
-        moves: 600,    // 从60增加到600
+        moves: 80,
         quote: "第七关，像七色彩虹一样绚烂的我们 🌈",
         difficulty: 'hard',
         special: true,
-        specialApples: 0.3,
-        comboBoost: 1.8
+        specialApples: 0.12,
+        comboBoost: 1.3
     },
     {
         id: 8,
         target: 4500,
-        moves: 650,    // 从65增加到650
+        moves: 85,
         quote: "八这个数字多吉利，像我们的爱情一样发发发 💰💕",
         difficulty: 'hard',
-        specialApples: 0.25,
-        comboBoost: 1.6
+        specialApples: 0.1,
+        comboBoost: 1.25
     },
     {
         id: 9,
         target: 5000,
-        moves: 700,    // 从70增加到700
+        moves: 90,
         quote: "九关了！长长久久，我们要一直在一起 💍",
         difficulty: 'expert',
-        specialApples: 0.35,
-        comboBoost: 2.0    // 最高连击加成
+        specialApples: 0.15,
+        comboBoost: 1.4
     },
     {
         id: 10,
         target: 5500,
-        moves: 750,    // 从75增加到750
+        moves: 95,
         quote: "十全十美的我们，十全十美的爱情 💯💕",
         difficulty: 'expert',
         special: true,
-        specialApples: 0.4,
-        comboBoost: 1.9
+        specialApples: 0.18,
+        comboBoost: 1.45
     },
     {
         id: 11,
         target: 6000,
-        moves: 800,    // 从80增加到800
+        moves: 100,
         quote: "11这个数字，像两个人紧紧相依 👫💕",
         difficulty: 'expert',
-        specialApples: 0.3,
-        comboBoost: 1.7
+        specialApples: 0.12,
+        comboBoost: 1.35
     },
     {
         id: 12,
         target: 6500,
-        moves: 850,    // 从85增加到850
+        moves: 110,
         quote: "最后一关了！就像我们要一起走到最后一样 🌅💕",
         difficulty: 'master',
         special: true,
-        specialApples: 0.5,
-        comboBoost: 2.2    // 最终关卡最高加成
+        specialApples: 0.2,
+        comboBoost: 1.5
     }
 ];
 
@@ -879,7 +739,7 @@ const ACHIEVEMENTS = [
     {
         id: 'perfect_level',
         name: '完美通关',
-        desc: '剩余步数超过100步完成关卡',
+        desc: '剩余步数超过30步完成关卡',
         icon: '👑'
     },
     {
@@ -915,7 +775,7 @@ function initializeGame() {
 function createHeartsBackground() {
     const container = document.getElementById('heartsBackground');
     
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 12; i++) {  // 减少爱心数量避免性能问题
         const heart = document.createElement('div');
         heart.className = 'heart';
         heart.innerHTML = ['💕', '💖', '💗', '💝', '💘'][Math.floor(Math.random() * 5)];
@@ -926,7 +786,7 @@ function createHeartsBackground() {
     }
 }
 
-// 创建关卡按钮
+// 创建关卡按钮 (继续)
 function createLevelButtons() {
     const levelGrid = document.getElementById('levelGrid');
     
@@ -936,18 +796,19 @@ function createLevelButtons() {
     practiceButton.innerHTML = `
         <h3>🎯 练习模式</h3>
         <p>无限步数，随意练习</p>
-        <div class="love-quote">在这里尽情享受游戏的快乐吧 😊</div>
+        <div class="love-quote">在这里尽情享受游戏的乐趣吧~ 💕</div>
     `;
     practiceButton.onclick = () => startLevel(0);
     levelGrid.appendChild(practiceButton);
-    
-    // 正常关卡按钮
+
+    // 创建正式关卡按钮
     LEVELS.forEach(level => {
         const button = document.createElement('button');
-        button.className = `level-button ${level.special ? 'special' : ''}`;
+        button.className = level.special ? 'level-button special' : 'level-button';
         button.innerHTML = `
-            <h3>${level.special ? '💖' : '🍎'} 第 ${level.id} 关</h3>
-            <p>目标: ${level.target} 分 | 步数: ${level.moves}</p>
+            <h3>${level.special ? '💖' : '🍎'} 第${level.id}关</h3>
+            <p>目标: ${level.target.toLocaleString()} 分</p>
+            <p>步数: ${level.moves} 步</p>
             <div class="love-quote">${level.quote}</div>
         `;
         button.onclick = () => startLevel(level.id);
@@ -955,168 +816,79 @@ function createLevelButtons() {
     });
 }
 
-// 检查特殊日期
-function checkSpecialDate() {
-    const today = new Date();
-    const month = today.getMonth() + 1;
-    const date = today.getDate();
-    
-    // Ashley的生日 3月25日
-    if (month === 3 && date === 25) {
-        createBirthdayEffect();
-        setTimeout(() => {
-            showMessage("🎂 生日快乐，我的宝贝Ashley！这是专属于你的特殊日子！💕");
-        }, 2000);
-    }
-    
-    // 情人节 2月14日
-    if (month === 2 && date === 14) {
-        createValentineEffect();
-        setTimeout(() => {
-            showMessage("💝 情人节快乐！愿我们的爱情甜甜蜜蜜！");
-        }, 2000);
-    }
-}
-
-// 开始关卡
+// 开始游戏关卡
 function startLevel(levelId) {
     gameState.currentLevel = levelId;
-    gameState.isGameActive = true;
-    gameState.isPaused = false;
-    gameState.combo = 0;
-    gameState.selectedCell = null;
-    gameState.activePowerUp = null;
     
     if (levelId === 0) {
         // 练习模式
-        gameState.score = 0;
         gameState.target = Infinity;
         gameState.moves = Infinity;
-        // 练习模式道具更多
-        gameState.powerUps = {
-            bomb: 20,
-            lightning: 20, 
-            rainbow: 15,
-            hammer: 25,
-            shuffle: 15,
-            time: 15
-        };
     } else {
-        // 正常关卡
+        // 正式关卡
         const level = LEVELS.find(l => l.id === levelId);
-        gameState.score = 0;
-        gameState.target = level.target;
-        gameState.moves = level.moves;
-        
-        // 根据关卡调整道具数量
-        const baseMultiplier = Math.min(1 + (levelId * 0.1), 2.5); // 最高2.5倍
-        gameState.powerUps = {
-            bomb: Math.floor(10 * baseMultiplier),
-            lightning: Math.floor(10 * baseMultiplier),
-            rainbow: Math.floor(8 * baseMultiplier),
-            hammer: Math.floor(15 * baseMultiplier),
-            shuffle: Math.floor(8 * baseMultiplier),
-            time: Math.floor(8 * baseMultiplier)
-        };
+        if (level) {
+            gameState.target = level.target;
+            gameState.moves = level.moves;
+        }
     }
     
+    // 重置游戏状态
+    gameState.score = 0;
+    gameState.combo = 0;
+    gameState.selectedCell = null;
+    gameState.isGameActive = true;
+    gameState.isPaused = false;
+    gameState.activePowerUp = null;
+    
+    // 初始化网格
     initializeGrid();
     showGameScreen();
     updateUI();
     
     // 显示关卡开始消息
-    if (levelId > 0) {
-        const level = LEVELS.find(l => l.id === levelId);
-        setTimeout(() => {
-            showMessage(`💖 ${level.quote}`);
-        }, 500);
+    if (levelId === 0) {
+        showMessage('🎯 练习模式开始！尽情享受吧~');
     } else {
-        setTimeout(() => {
-            showMessage("🎯 练习模式开始！尽情享受游戏乐趣吧！");
-        }, 500);
+        const level = LEVELS.find(l => l.id === levelId);
+        showMessage(`🍎 第${levelId}关开始！\n${level?.quote || ''}`);
     }
 }
 
 // 初始化游戏网格
 function initializeGrid() {
     gameState.grid = [];
-    const gameGrid = document.getElementById('gameGrid');
-    gameGrid.innerHTML = '';
     
-    // 创建8x8网格
     for (let row = 0; row < 8; row++) {
         gameState.grid[row] = [];
         for (let col = 0; col < 8; col++) {
             gameState.grid[row][col] = createRandomApple();
-            
-            const cell = document.createElement('div');
-            cell.className = 'grid-cell';
-            cell.dataset.row = row;
-            cell.dataset.col = col;
-            
-            updateCellDisplay(row, col);
-            setupCellInteraction(cell, row, col);
-            
-            gameGrid.appendChild(cell);
         }
     }
     
-    // 确保没有初始匹配，并增加连击概率
+    // 移除初始匹配
     removeInitialMatches();
-    enhanceComboOpportunities();
-}
-
-// 增强连击机会（新增函数）
-function enhanceComboOpportunities() {
-    const currentLevel = LEVELS.find(l => l.id === gameState.currentLevel);
-    if (!currentLevel) return;
-    
-    // 根据关卡的comboBoost值创建更多连击机会
-    const comboBoost = currentLevel.comboBoost || 1.0;
-    const enhancedCells = Math.floor(8 * comboBoost); // 增强的格子数量
-    
-    for (let i = 0; i < enhancedCells; i++) {
-        const row = Math.floor(Math.random() * 8);
-        const col = Math.floor(Math.random() * 8);
-        
-        // 在随机位置放置容易产生连击的苹果组合
-        if (row < 6 && col < 6) {
-            const appleType = APPLE_TYPES[Math.floor(Math.random() * APPLE_TYPES.length)];
-            gameState.grid[row][col] = { ...appleType };
-            gameState.grid[row + 1][col] = { ...appleType };
-            
-            // 35%概率创建更长的连击链
-            if (Math.random() < 0.35) {
-                gameState.grid[row][col + 1] = { ...appleType };
-            }
-            
-            updateCellDisplay(row, col);
-            updateCellDisplay(row + 1, col);
-            if (gameState.grid[row][col + 1]?.type === appleType.type) {
-                updateCellDisplay(row, col + 1);
-            }
-        }
-    }
-    
-    // 添加一些特殊苹果来增加连击概率
-    if (Math.random() < currentLevel.specialApples) {
-        addRandomSpecialItems();
-    }
+    renderGrid();
 }
 
 // 创建随机苹果
 function createRandomApple() {
-    return { ...APPLE_TYPES[Math.floor(Math.random() * APPLE_TYPES.length)] };
+    const randomType = APPLE_TYPES[Math.floor(Math.random() * APPLE_TYPES.length)];
+    return {
+        emoji: randomType.emoji,
+        type: randomType.type,
+        class: randomType.class
+    };
 }
 
 // 移除初始匹配
 function removeInitialMatches() {
     let hasMatches = true;
     let attempts = 0;
-    const maxAttempts = 50;
     
-    while (hasMatches && attempts < maxAttempts) {
+    while (hasMatches && attempts < 50) {
         hasMatches = false;
+        attempts++;
         
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
@@ -1126,280 +898,160 @@ function removeInitialMatches() {
                 }
             }
         }
-        attempts++;
-    }
-    
-    // 更新所有单元格显示
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            updateCellDisplay(row, col);
-        }
     }
 }
 
-// 检查指定位置是否有匹配
+// 检查位置是否有匹配
 function hasMatchAtPosition(row, col) {
-    const currentType = gameState.grid[row][col]?.type;
-    if (!currentType) return false;
+    const currentApple = gameState.grid[row][col];
+    if (!currentApple) return false;
     
     // 检查水平匹配
     let horizontalCount = 1;
+    
     // 向左检查
-    for (let c = col - 1; c >= 0 && gameState.grid[row][c]?.type === currentType; c--) {
+    for (let c = col - 1; c >= 0 && gameState.grid[row][c]?.type === currentApple.type; c--) {
         horizontalCount++;
     }
+    
     // 向右检查
-    for (let c = col + 1; c < 8 && gameState.grid[row][c]?.type === currentType; c++) {
+    for (let c = col + 1; c < 8 && gameState.grid[row][c]?.type === currentApple.type; c++) {
         horizontalCount++;
     }
+    
+    if (horizontalCount >= 3) return true;
     
     // 检查垂直匹配
     let verticalCount = 1;
+    
     // 向上检查
-    for (let r = row - 1; r >= 0 && gameState.grid[r][col]?.type === currentType; r--) {
-        verticalCount++;
-    }
-    // 向下检查
-    for (let r = row + 1; r < 8 && gameState.grid[r][col]?.type === currentType; r++) {
+    for (let r = row - 1; r >= 0 && gameState.grid[r][col]?.type === currentApple.type; r--) {
         verticalCount++;
     }
     
-    return horizontalCount >= 3 || verticalCount >= 3;
+    // 向下检查
+    for (let r = row + 1; r < 8 && gameState.grid[r][col]?.type === currentApple.type; r++) {
+        verticalCount++;
+    }
+    
+    return verticalCount >= 3;
+}
+
+// 渲染游戏网格
+function renderGrid() {
+    const gameGrid = document.getElementById('gameGrid');
+    gameGrid.innerHTML = '';
+    
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+            cell.addEventListener('click', () => handleCellClick(row, col));
+            
+            updateCellDisplay(row, col, cell);
+            gameGrid.appendChild(cell);
+        }
+    }
 }
 
 // 更新单元格显示
-function updateCellDisplay(row, col) {
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-    const apple = gameState.grid[row][col];
-    
-    if (cell && apple) {
-        cell.innerHTML = `<span class="apple-icon">${apple.emoji}</span>`;
-        cell.className = `grid-cell ${apple.class || ''}`;
+function updateCellDisplay(row, col, cell = null) {
+    if (!cell) {
+        cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
     }
-}
-
-// 游戏说明相关函数
-function showGameGuide() {
-    document.getElementById('gameGuide').style.display = 'flex';
-}
-
-function closeGameGuide() {
-    document.getElementById('gameGuide').style.display = 'none';
-}
-
-// 音效播放
-gameState.playSound = function(soundType) {
-    if (!this.soundEnabled) return;
     
-    // 这里可以添加实际的音效播放代码
-    // 由于是演示版本，暂时用console.log代替
-    // console.log(`Playing sound: ${soundType}`);
-};
-// 设置单元格交互
-function setupCellInteraction(cell, row, col) {
-    let startX, startY;
+    if (!cell) return;
     
-    // 触摸开始
-    cell.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        startX = touch.clientX;
-        startY = touch.clientY;
-        
-        handleCellClick(row, col);
-    }, { passive: false });
-    
-    // 触摸移动 - 实现拖拽交换
-    cell.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-        if (!startX || !startY) return;
-        
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - startX;
-        const deltaY = touch.clientY - startY;
-        const minSwipeDistance = 30;
-        
-        if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
-            let targetRow = row;
-            let targetCol = col;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                // 水平滑动
-                targetCol = deltaX > 0 ? col + 1 : col - 1;
-            } else {
-                // 垂直滑动
-                targetRow = deltaY > 0 ? row + 1 : row - 1;
-            }
-            
-            if (targetRow >= 0 && targetRow < 8 && targetCol >= 0 && targetCol < 8) {
-                attemptSwap(row, col, targetRow, targetCol);
-            }
-            
-            startX = null;
-            startY = null;
-        }
-    }, { passive: false });
-    
-    // 点击事件（作为备用）
-    cell.addEventListener('click', function(e) {
-        e.preventDefault();
-        handleCellClick(row, col);
-    });
+    const apple = gameState.grid[row][col];
+    if (apple) {
+        cell.innerHTML = `<span class="apple-icon">${apple.emoji}</span>`;
+        cell.style.background = 'rgba(255,255,255,0.9)';
+    } else {
+        cell.innerHTML = '';
+        cell.style.background = 'rgba(255,255,255,0.3)';
+    }
 }
 
 // 处理单元格点击
 function handleCellClick(row, col) {
     if (!gameState.isGameActive || gameState.isPaused) return;
     
-    // 如果有激活的道具，使用道具
+    // 如果选择了道具，使用道具
     if (gameState.activePowerUp) {
         usePowerUp(gameState.activePowerUp, row, col);
         return;
     }
     
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    const clickedCell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
     
-    if (gameState.selectedCell) {
-        const [selectedRow, selectedCol] = gameState.selectedCell;
+    if (!gameState.selectedCell) {
+        // 第一次选择
+        if (!gameState.grid[row][col]) return; // 空格子不能选择
         
-        if (selectedRow === row && selectedCol === col) {
+        gameState.selectedCell = { row, col };
+        clickedCell.classList.add('selected');
+        playSound('select');
+    } else {
+        const { row: selectedRow, col: selectedCol } = gameState.selectedCell;
+        const selectedCell = document.querySelector(`[data-row="${selectedRow}"][data-col="${selectedCol}"]`);
+        
+        if (row === selectedRow && col === selectedCol) {
             // 取消选择
-            deselectCell();
+            gameState.selectedCell = null;
+            selectedCell.classList.remove('selected');
             return;
         }
         
-        // 尝试交换
-        if (isAdjacent(selectedRow, selectedCol, row, col)) {
+        // 检查是否相邻
+        const isAdjacent = (Math.abs(row - selectedRow) === 1 && col === selectedCol) ||
+                          (Math.abs(col - selectedCol) === 1 && row === selectedRow);
+        
+        if (isAdjacent) {
+            // 尝试交换
             attemptSwap(selectedRow, selectedCol, row, col);
-        } else {
-            // 选择新单元格
-            deselectCell();
-            selectCell(row, col);
         }
-    } else {
-        // 选择单元格
-        selectCell(row, col);
-    }
-}
-
-// 选择单元格
-function selectCell(row, col) {
-    gameState.selectedCell = [row, col];
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-    if (cell) {
-        cell.classList.add('selected');
-    }
-}
-
-// 取消选择
-function deselectCell() {
-    if (gameState.selectedCell) {
-        const [row, col] = gameState.selectedCell;
-        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-        if (cell) {
-            cell.classList.remove('selected');
-        }
+        
+        // 清除选择状态
         gameState.selectedCell = null;
+        selectedCell.classList.remove('selected');
     }
 }
 
-// 检查两个位置是否相邻
-function isAdjacent(row1, col1, row2, col2) {
-    const rowDiff = Math.abs(row1 - row2);
-    const colDiff = Math.abs(col1 - col2);
-    return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
-}
-
-// 尝试交换
+// 尝试交换苹果
 function attemptSwap(row1, col1, row2, col2) {
-    // 临时交换
+    // 交换苹果
     const temp = gameState.grid[row1][col1];
     gameState.grid[row1][col1] = gameState.grid[row2][col2];
     gameState.grid[row2][col2] = temp;
     
-    // 检查是否产生匹配
-    const matches = findMatches();
+    // 检查是否形成匹配
+    const hasMatch = hasMatchAtPosition(row1, col1) || hasMatchAtPosition(row2, col2);
     
-    if (matches.length > 0) {
-        // 有效交换
-        deselectCell();
+    if (hasMatch) {
+        // 有效移动
+        gameState.moves--;
         updateCellDisplay(row1, col1);
         updateCellDisplay(row2, col2);
+        playSound('swap');
         
-        // 添加交换动画
-        animateSwap(row1, col1, row2, col2);
-        
-        // 消耗步数（练习模式不消耗）
-        if (gameState.currentLevel > 0) {
-            gameState.moves--;
-        }
-        
-        // 处理匹配
         setTimeout(() => {
             processMatches();
-        }, 300);
-        
-        gameState.playSound('swap');
+        }, 200);
     } else {
-        // 无效交换，恢复原状
+        // 无效移动，交换回去
         gameState.grid[row2][col2] = gameState.grid[row1][col1];
         gameState.grid[row1][col1] = temp;
         
-        // 显示无效提示
-        showInvalidSwapAnimation(row1, col1, row2, col2);
-        deselectCell();
+        playSound('invalid');
+        showMessage('❌ 这样移动不能形成匹配！');
     }
     
     updateUI();
 }
 
-// 交换动画
-function animateSwap(row1, col1, row2, col2) {
-    const cell1 = document.querySelector(`[data-row="${row1}"][data-col="${col1}"]`);
-    const cell2 = document.querySelector(`[data-row="${row2}"][data-col="${col2}"]`);
-    
-    if (cell1 && cell2) {
-        cell1.style.transform = 'scale(1.1)';
-        cell2.style.transform = 'scale(1.1)';
-        
-        setTimeout(() => {
-            cell1.style.transform = '';
-            cell2.style.transform = '';
-        }, 200);
-    }
-}
-
-// 无效交换动画
-function showInvalidSwapAnimation(row1, col1, row2, col2) {
-    const cell1 = document.querySelector(`[data-row="${row1}"][data-col="${col1}"]`);
-    const cell2 = document.querySelector(`[data-row="${row2}"][data-col="${col2}"]`);
-    
-    if (cell1 && cell2) {
-        cell1.style.animation = 'shake 0.5s ease-in-out';
-        cell2.style.animation = 'shake 0.5s ease-in-out';
-        
-        setTimeout(() => {
-            cell1.style.animation = '';
-            cell2.style.animation = '';
-        }, 500);
-    }
-    
-    // 添加摇摆动画CSS（如果还没有的话）
-    if (!document.querySelector('#shakeAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'shakeAnimation';
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-5px); }
-                75% { transform: translateX(5px); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-// 寻找匹配
+// 寻找所有匹配
 function findMatches() {
     const matches = new Set();
     
@@ -1412,9 +1064,9 @@ function findMatches() {
             if (gameState.grid[row][col]?.type === currentType && currentType) {
                 count++;
             } else {
-                if (count >= 3) {
-                    for (let i = col - count; i < col; i++) {
-                        matches.add(`${row}-${i}`);
+                if (count >= 3 && currentType) {
+                    for (let c = col - count; c < col; c++) {
+                        matches.add(`${row}-${c}`);
                     }
                 }
                 count = 1;
@@ -1422,10 +1074,9 @@ function findMatches() {
             }
         }
         
-        // 检查行末尾
-        if (count >= 3) {
-            for (let i = 8 - count; i < 8; i++) {
-                matches.add(`${row}-${i}`);
+        if (count >= 3 && currentType) {
+            for (let c = 8 - count; c < 8; c++) {
+                matches.add(`${row}-${c}`);
             }
         }
     }
@@ -1439,9 +1090,9 @@ function findMatches() {
             if (gameState.grid[row][col]?.type === currentType && currentType) {
                 count++;
             } else {
-                if (count >= 3) {
-                    for (let i = row - count; i < row; i++) {
-                        matches.add(`${i}-${col}`);
+                if (count >= 3 && currentType) {
+                    for (let r = row - count; r < row; r++) {
+                        matches.add(`${r}-${col}`);
                     }
                 }
                 count = 1;
@@ -1449,10 +1100,9 @@ function findMatches() {
             }
         }
         
-        // 检查列末尾
-        if (count >= 3) {
-            for (let i = 8 - count; i < 8; i++) {
-                matches.add(`${i}-${col}`);
+        if (count >= 3 && currentType) {
+            for (let r = 8 - count; r < 8; r++) {
+                matches.add(`${r}-${col}`);
             }
         }
     }
@@ -1463,519 +1113,89 @@ function findMatches() {
     });
 }
 
-// 处理匹配（增强连击逻辑）
-async function processMatches() {
-    let totalMatches = 0;
-    let comboCount = 0;
+// 处理匹配
+function processMatches() {
+    const matches = findMatches();
+    
+    if (matches.length === 0) {
+        gameState.combo = 0;
+        checkGameStatus();
+        return;
+    }
+    
+    // 增加连击
+    gameState.combo++;
+    gameState.maxCombo = Math.max(gameState.maxCombo, gameState.combo);
+    gameState.totalMatches++;
+    
+    // 计算分数
+    const baseScore = matches.length * 100;
+    const comboBonus = gameState.combo > 1 ? (gameState.combo - 1) * 0.5 : 0;
     const currentLevel = LEVELS.find(l => l.id === gameState.currentLevel);
-    const comboBoost = currentLevel?.comboBoost || 1.0;
+    const levelBonus = currentLevel?.comboBoost || 1;
     
-    while (true) {
-        const matches = findMatches();
-        if (matches.length === 0) break;
-        
-        comboCount++;
-        totalMatches += matches.length;
-        
-        // 连击加分计算（增强版）
-        const baseScore = matches.length * 100;
-        const comboMultiplier = Math.min(1 + (comboCount - 1) * 0.5 * comboBoost, 5.0); // 最高5倍
-        const finalScore = Math.floor(baseScore * comboMultiplier);
-        
-        gameState.score += finalScore;
-        gameState.combo = comboCount;
-        gameState.totalMatches += matches.length;
-        
-        // 更新最大连击记录
-        if (comboCount > gameState.maxCombo) {
-            gameState.maxCombo = comboCount;
-        }
-        
-        // 显示连击效果
-        if (comboCount > 1) {
-            showComboEffect(comboCount, finalScore);
-        }
-        
-        // 播放音效
-        if (comboCount === 1) {
-            gameState.playSound('match');
-        } else {
-            gameState.playSound('combo');
-        }
-        
-        // 移除匹配的苹果（带动画）
-        await removeMatchedApples(matches);
-        
-        // 添加特殊道具生成概率（连击时）
-        if (comboCount >= 3 && Math.random() < 0.3 * comboBoost) {
-            await addRandomSpecialItems();
-        }
-        
-        // 下落
-        await dropApples();
-        
-        // 填充新苹果
-        await fillEmptySpaces();
-        
-        // 增加额外连击机会（基于comboBoost）
-        if (comboCount >= 2 && Math.random() < 0.2 * comboBoost) {
-            await createRandomMatches();
-        }
-        
-        // 短暂延迟以显示动画
-        await new Promise(resolve => setTimeout(resolve, 200));
-    }
+    const totalScore = Math.floor(baseScore * (1 + comboBonus) * levelBonus);
+    gameState.score += totalScore;
     
-    // 连击结束，重置连击计数器
-    gameState.combo = 0;
-    
-    updateUI();
-    checkGameStatus();
-    checkAchievements();
-    
-    // 检查是否还有可能的移动
-    if (gameState.isGameActive && !gameState.isPaused) {
-        const possibleMoves = findPossibleMoves();
-        if (possibleMoves.length === 0) {
-            setTimeout(() => {
-                showMessage("没有可行的移动了！");
-                // 自动洗牌或提示使用洗牌道具
-                if (gameState.powerUps.shuffle > 0) {
-                    setTimeout(() => {
-                        showMessage("💡 试试使用洗牌道具！");
-                    }, 2000);
-                }
-            }, 1000);
-        }
-    }
-}
-
-// 创建随机匹配机会（新增函数）
-async function createRandomMatches() {
-    const emptyPositions = [];
-    
-    // 找到可以增加匹配机会的位置
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            if (col < 6) { // 水平机会
-                const type1 = gameState.grid[row][col]?.type;
-                const type2 = gameState.grid[row][col + 2]?.type;
-                if (type1 === type2 && type1) {
-                    // 在中间放置相同类型的苹果
-                    gameState.grid[row][col + 1] = { ...APPLE_TYPES.find(a => a.type === type1) };
-                    updateCellDisplay(row, col + 1);
-                    return;
-                }
-            }
-            
-            if (row < 6) { // 垂直机会
-                const type1 = gameState.grid[row][col]?.type;
-                const type2 = gameState.grid[row + 2][col]?.type;
-                if (type1 === type2 && type1) {
-                    // 在中间放置相同类型的苹果
-                    gameState.grid[row + 1][col] = { ...APPLE_TYPES.find(a => a.type === type1) };
-                    updateCellDisplay(row + 1, col);
-                    return;
-                }
-            }
-        }
-    }
-}
-
-// 显示连击效果
-function showComboEffect(combo, score) {
-    const comboDiv = document.createElement('div');
-    comboDiv.className = 'combo-display';
-    
-    let comboText = '';
-    if (combo >= 10) {
-        comboText = `🔥 AMAZING ${combo}连击! +${score} 🔥`;
-    } else if (combo >= 7) {
-        comboText = `⚡ SUPER ${combo}连击! +${score} ⚡`;
-    } else if (combo >= 5) {
-        comboText = `✨ GREAT ${combo}连击! +${score} ✨`;
-    } else if (combo >= 3) {
-        comboText = `💫 GOOD ${combo}连击! +${score} 💫`;
-    } else {
-        comboText = `🌟 ${combo}连击! +${score} 🌟`;
-    }
-    
-    comboDiv.textContent = comboText;
-    
-    const gameGrid = document.getElementById('gameGrid');
-    gameGrid.appendChild(comboDiv);
-    
-    setTimeout(() => {
-        comboDiv.remove();
-    }, 1000);
-}
-
-// 移除匹配的苹果
-async function removeMatchedApples(matches) {
-    // 添加消除动画
-    matches.forEach(match => {
-        const cell = document.querySelector(`[data-row="${match.row}"][data-col="${match.col}"]`);
+    // 显示匹配动画和分数
+    matches.forEach(({row, col}) => {
+        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (cell) {
-            cell.style.animation = 'fadeOut 0.3s ease-out forwards';
+            cell.style.animation = 'matchPulse 0.6s ease-out';
         }
+        gameState.grid[row][col] = null;
     });
     
-    // 等待动画完成
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // 显示连击和分数消息
+    let message = `消除${matches.length}个苹果！+${totalScore}分`;
+    if (gameState.combo > 1) {
+        message += ` 🔥 ${gameState.combo}连击!`;
+    }
+    showMessage(message);
     
-    // 移除苹果
-    matches.forEach(match => {
-        gameState.grid[match.row][match.col] = null;
-        updateCellDisplay(match.row, match.col);
-    });
+    playSound('match');
     
-    // 添加消除动画的CSS
-    if (!document.querySelector('#fadeOutAnimation')) {
+    // 添加匹配动画CSS
+    if (!document.querySelector('#matchAnimation')) {
         const style = document.createElement('style');
-        style.id = 'fadeOutAnimation';
+        style.id = 'matchAnimation';
         style.textContent = `
-            @keyframes fadeOut {
-                0% { transform: scale(1); opacity: 1; }
-                100% { transform: scale(0.8); opacity: 0; }
+            @keyframes matchPulse {
+                0% { transform: scale(1); background: rgba(255,255,255,0.9); }
+                50% { transform: scale(1.1); background: rgba(255,215,0,0.8); }
+                100% { transform: scale(0); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
     }
-}
-// 道具相关功能
-function setupPowerUpButtons() {
-    document.querySelectorAll('.power-up').forEach(button => {
-        button.addEventListener('click', function() {
-            const powerType = this.dataset.power;
-            selectPowerUp(powerType);
-        });
-    });
-}
-
-// 选择道具
-function selectPowerUp(powerType) {
-    if (!gameState.isGameActive || gameState.isPaused) return;
-    
-    if (gameState.powerUps[powerType] <= 0) {
-        showMessage('❌ 道具数量不足！');
-        return;
-    }
-    
-    // 取消之前的道具选择
-    document.querySelectorAll('.power-up').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    if (gameState.activePowerUp === powerType) {
-        // 取消选择
-        gameState.activePowerUp = null;
-        showMessage('取消道具选择');
-    } else {
-        // 选择新道具
-        gameState.activePowerUp = powerType;
-        const button = document.querySelector(`[data-power="${powerType}"]`);
-        if (button) {
-            button.classList.add('active');
-        }
-        
-        const powerNames = {
-            bomb: '💥 炸弹',
-            lightning: '⚡ 闪电', 
-            rainbow: '🌈 彩虹',
-            hammer: '🔨 锤子',
-            shuffle: '🔄 洗牌',
-            time: '⏰ 时光'
-        };
-        
-        showMessage(`已选择道具：${powerNames[powerType]}`);
-        
-        // 洗牌和时光道具直接使用
-        if (powerType === 'shuffle') {
-            usePowerUp('shuffle', 0, 0);
-        } else if (powerType === 'time') {
-            usePowerUp('time', 0, 0);
-        }
-    }
-}
-
-// 使用道具
-function usePowerUp(powerType, row, col) {
-    if (gameState.powerUps[powerType] <= 0) {
-        showMessage('❌ 道具数量不足！');
-        return;
-    }
-    
-    // 消耗道具
-    gameState.powerUps[powerType]--;
-    gameState.activePowerUp = null;
-    
-    // 取消所有道具的激活状态
-    document.querySelectorAll('.power-up').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    switch (powerType) {
-        case 'bomb':
-            useBomb(row, col);
-            break;
-        case 'lightning':
-            useLightning(row, col);
-            break;
-        case 'rainbow':
-            useRainbow(row, col);
-            break;
-        case 'hammer':
-            useHammer(row, col);
-            break;
-        case 'shuffle':
-            useShuffle();
-            break;
-        case 'time':
-            useTime();
-            break;
-    }
-    
-    updatePowerUpUI();
-    gameState.playSound('powerUp');
-    checkAchievements();
-}
-
-// 炸弹道具 - 消除3x3范围
-function useBomb(centerRow, centerCol) {
-    const affectedCells = [];
-    
-    for (let row = Math.max(0, centerRow - 1); row <= Math.min(7, centerRow + 1); row++) {
-        for (let col = Math.max(0, centerCol - 1); col <= Math.min(7, centerCol + 1); col++) {
-            if (gameState.grid[row][col]) {
-                affectedCells.push({ row, col });
-            }
-        }
-    }
-    
-    // 爆炸动画
-    showExplosionEffect(centerRow, centerCol);
     
     setTimeout(() => {
-        const score = affectedCells.length * 150; // 炸弹分数更高
-        gameState.score += score;
-        
-        affectedCells.forEach(({row, col}) => {
-            gameState.grid[row][col] = null;
+        matches.forEach(({row, col}) => {
             updateCellDisplay(row, col);
         });
         
-        showMessage(`💥 炸弹爆炸！获得 ${score} 分！`);
-        
         setTimeout(() => {
-            processAfterPowerUp();
-        }, 500);
+            fillGrid();
+        }, 200);
     }, 600);
 }
 
-// 闪电道具 - 消除整行整列
-function useLightning(row, col) {
-    const affectedCells = [];
+// 填充网格
+async function fillGrid() {
+    let needsFill = true;
     
-    // 收集整行
-    for (let c = 0; c < 8; c++) {
-        if (gameState.grid[row][c]) {
-            affectedCells.push({ row, col: c });
-        }
-    }
-    
-    // 收集整列
-    for (let r = 0; r < 8; r++) {
-        if (gameState.grid[r][col] && !affectedCells.some(cell => cell.row === r && cell.col === col)) {
-            affectedCells.push({ row: r, col });
-        }
-    }
-    
-    // 闪电动画
-    showLightningEffect(row, col);
-    
-    setTimeout(() => {
-        const score = affectedCells.length * 120;
-        gameState.score += score;
+    while (needsFill) {
+        needsFill = false;
         
-        affectedCells.forEach(({row, col}) => {
-            gameState.grid[row][col] = null;
-            updateCellDisplay(row, col);
-        });
-        
-        showMessage(`⚡ 闪电一击！获得 ${score} 分！`);
-        
-        setTimeout(() => {
-            processAfterPowerUp();
-        }, 500);
-    }, 800);
-}
-
-// 彩虹道具 - 消除所有相同类型
-function useRainbow(row, col) {
-    const targetType = gameState.grid[row][col]?.type;
-    if (!targetType) {
-        showMessage('❌ 请选择有效的苹果！');
-        gameState.powerUps.rainbow++; // 退还道具
-        updatePowerUpUI();
-        return;
-    }
-    
-    const affectedCells = [];
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            if (gameState.grid[r][c]?.type === targetType) {
-                affectedCells.push({ row: r, col: c });
-            }
-        }
-    }
-    
-    // 彩虹动画
-    showRainbowEffect();
-    
-    setTimeout(() => {
-        const score = affectedCells.length * 200; // 彩虹分数最高
-        gameState.score += score;
-        
-        affectedCells.forEach(({row, col}) => {
-            gameState.grid[row][col] = null;
-            updateCellDisplay(row, col);
-        });
-        
-        showMessage(`🌈 彩虹消除！获得 ${score} 分！`);
-        
-        setTimeout(() => {
-            processAfterPowerUp();
-        }, 500);
-    }, 1000);
-}
-
-// 锤子道具 - 消除单个苹果
-function useHammer(row, col) {
-    if (!gameState.grid[row][col]) {
-        showMessage('❌ 请选择有效的苹果！');
-        gameState.powerUps.hammer++; // 退还道具
-        updatePowerUpUI();
-        return;
-    }
-    
-    // 锤击动画
-    showHammerEffect(row, col);
-    
-    setTimeout(() => {
-        gameState.score += 100;
-        gameState.grid[row][col] = null;
-        updateCellDisplay(row, col);
-        
-        showMessage('🔨 精准打击！获得 100 分！');
-        
-        setTimeout(() => {
-            processAfterPowerUp();
-        }, 300);
-    }, 400);
-}
-
-// 洗牌道具 - 重新排列
-function useShuffle() {
-    // 洗牌动画
-    showShuffleEffect();
-    
-    setTimeout(() => {
-        const allApples = [];
-        
-        // 收集所有苹果
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                if (gameState.grid[row][col]) {
-                    allApples.push(gameState.grid[row][col]);
-                }
-            }
-        }
-        
-        // 洗牌
-        for (let i = allApples.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [allApples[i], allApples[j]] = [allApples[j], allApples[i]];
-        }
-        
-        // 重新放置
-        let index = 0;
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                if (index < allApples.length) {
-                    gameState.grid[row][col] = allApples[index++];
-                    updateCellDisplay(row, col);
-                }
-            }
-        }
-        
-        // 确保洗牌后没有初始匹配
-        removeInitialMatches();
-        // 增加连击机会
-        enhanceComboOpportunities();
-        
-        showMessage('🔄 棋盘洗牌完成！');
-        
-        setTimeout(() => {
-            // 检查洗牌后是否产生了匹配
-            const matches = findMatches();
-            if (matches.length > 0) {
-                processMatches();
-            }
-        }, 500);
-    }, 1000);
-}
-
-// 时光道具 - 增加步数（修改为增加50步）
-function useTime() {
-    if (gameState.currentLevel === 0) {
-        showMessage('⏰ 练习模式已经是无限步数了！');
-        gameState.powerUps.time++; // 退还道具
-        updatePowerUpUI();
-        return;
-    }
-    
-    const addedMoves = 50; // 从5步增加到50步
-    gameState.moves += addedMoves;
-    
-    // 时光动画
-    showTimeEffect();
-    
-    showMessage(`⏰ 时光倒流！增加 ${addedMoves} 步！`);
-    updateUI();
-}
-
-// 道具使用后的处理
-async function processAfterPowerUp() {
-    await dropApples();
-    await fillEmptySpaces();
-    
-    // 检查是否产生新的匹配
-    const matches = findMatches();
-    if (matches.length > 0) {
-        setTimeout(() => {
-            processMatches();
-        }, 300);
-    } else {
-        updateUI();
-    }
-}
-
-// 苹果下落
-async function dropApples() {
-    let needsDrop = true;
-    
-    while (needsDrop) {
-        needsDrop = false;
-        
+        // 苹果下落
         for (let col = 0; col < 8; col++) {
             for (let row = 7; row >= 0; row--) {
                 if (!gameState.grid[row][col]) {
-                    // 找到上面的苹果
                     for (let r = row - 1; r >= 0; r--) {
                         if (gameState.grid[r][col]) {
                             gameState.grid[row][col] = gameState.grid[r][col];
                             gameState.grid[r][col] = null;
-                            needsDrop = true;
+                            needsFill = true;
                             break;
                         }
                     }
@@ -1990,35 +1210,28 @@ async function dropApples() {
             }
         }
         
-        if (needsDrop) {
-            await new Promise(resolve => setTimeout(resolve, 150));
+        if (needsFill) {
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
-}
-
-// 填充空格
-async function fillEmptySpaces() {
+    
+    // 填充空位
     for (let col = 0; col < 8; col++) {
         for (let row = 0; row < 8; row++) {
             if (!gameState.grid[row][col]) {
                 gameState.grid[row][col] = createRandomApple();
                 updateCellDisplay(row, col);
                 
-                // 添加下落动画
                 const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
                 if (cell) {
                     cell.style.animation = 'dropIn 0.3s ease-out';
-                    setTimeout(() => {
-                        cell.style.animation = '';
-                    }, 300);
+                    setTimeout(() => cell.style.animation = '', 300);
                 }
-                
-                await new Promise(resolve => setTimeout(resolve, 50));
             }
         }
     }
     
-    // 添加下落动画CSS
+    // 添加下落动画
     if (!document.querySelector('#dropInAnimation')) {
         const style = document.createElement('style');
         style.id = 'dropInAnimation';
@@ -2030,40 +1243,211 @@ async function fillEmptySpaces() {
         `;
         document.head.appendChild(style);
     }
+    
+    setTimeout(() => {
+        const newMatches = findMatches();
+        if (newMatches.length > 0) {
+            setTimeout(() => processMatches(), 300);
+        } else {
+            gameState.combo = 0;
+            checkGameStatus();
+        }
+    }, 400);
 }
 
-// 添加随机特殊道具（增强连击概率）
-async function addRandomSpecialItems() {
-    const specialCount = Math.floor(Math.random() * 3) + 1; // 1-3个特殊道具
+// 音效播放
+function playSound(type) {
+    if (!gameState.soundEnabled) return;
     
-    for (let i = 0; i < specialCount; i++) {
-        const emptyPositions = [];
+    // 使用Web Audio API创建简单音效
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
         
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                if (gameState.grid[row][col]) {
-                    emptyPositions.push({ row, col });
-                }
-            }
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        let frequency, duration;
+        
+        switch (type) {
+            case 'select': frequency = 800; duration = 0.1; break;
+            case 'swap': frequency = 600; duration = 0.2; break;
+            case 'match': frequency = 1000; duration = 0.3; break;
+            case 'combo': frequency = 1200; duration = 0.4; break;
+            case 'powerUp': frequency = 1500; duration = 0.5; break;
+            case 'achievement': frequency = 2000; duration = 0.8; break;
+            case 'invalid': frequency = 300; duration = 0.2; break;
+            default: frequency = 600; duration = 0.2;
         }
         
-        if (emptyPositions.length > 0) {
-            const randomPos = emptyPositions[Math.floor(Math.random() * emptyPositions.length)];
-            const cell = document.querySelector(`[data-row="${randomPos.row}"][data-col="${randomPos.col}"]`);
-            
-            if (cell) {
-                cell.classList.add('special-item');
-                
-                // 特殊效果：这个位置的苹果更容易产生连击
-                const currentApple = gameState.grid[randomPos.row][randomPos.col];
-                currentApple.special = true;
-                currentApple.comboBonus = 2.0; // 连击加成
-            }
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    } catch (e) {
+        // 静默处理音频错误
+    }
+}
+
+// 为gameState添加playSound方法
+gameState.playSound = playSound;
+
+// 道具系统
+function setupPowerUpButtons() {
+    document.querySelectorAll('.power-up').forEach(button => {
+        button.addEventListener('click', function() {
+            const powerType = this.dataset.power;
+            selectPowerUp(powerType);
+        });
+    });
+}
+
+function selectPowerUp(powerType) {
+    if (!gameState.isGameActive || gameState.isPaused) return;
+    
+    if (gameState.powerUps[powerType] <= 0) {
+        showMessage('❌ 道具数量不足！');
+        return;
+    }
+    
+    document.querySelectorAll('.power-up').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (gameState.activePowerUp === powerType) {
+        gameState.activePowerUp = null;
+        showMessage('取消道具选择');
+    } else {
+        gameState.activePowerUp = powerType;
+        const button = document.querySelector(`[data-power="${powerType}"]`);
+        if (button) button.classList.add('active');
+        
+        const powerNames = {
+            bomb: '💥 炸弹',
+            lightning: '⚡ 闪电',
+            rainbow: '🌈 彩虹',
+            hammer: '🔨 锤子',
+            shuffle: '🔄 洗牌',
+            time: '⏰ 时光'
+        };
+        
+        showMessage(`已选择道具：${powerNames[powerType]}`);
+        
+        if (powerType === 'shuffle' || powerType === 'time') {
+            usePowerUp(powerType, 0, 0);
         }
     }
 }
 
-// 特效动画函数
+function usePowerUp(powerType, row, col) {
+    if (gameState.powerUps[powerType] <= 0) {
+        showMessage('❌ 道具数量不足！');
+        return;
+    }
+    
+    gameState.powerUps[powerType]--;
+    gameState.activePowerUp = null;
+    
+    document.querySelectorAll('.power-up').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    switch (powerType) {
+        case 'bomb': useBomb(row, col); break;
+        case 'lightning': useLightning(row, col); break;
+        case 'rainbow': useRainbow(row, col); break;
+        case 'hammer': useHammer(row, col); break;
+        case 'shuffle': useShuffle(); break;
+        case 'time': useTime(); break;
+    }
+    
+    updatePowerUpUI();
+    playSound('powerUp');
+    checkAchievements();
+}
+
+function useBomb(centerRow, centerCol) {
+    const affectedCells = [];
+    
+    for (let row = Math.max(0, centerRow - 1); row <= Math.min(7, centerRow + 1); row++) {
+        for (let col = Math.max(0, centerCol - 1); col <= Math.min(7, centerCol + 1); col++) {
+            if (gameState.grid[row][col]) {
+                affectedCells.push({ row, col });
+            }
+        }
+    }
+    
+    showExplosionEffect(centerRow, centerCol);
+    
+    setTimeout(() => {
+        const score = affectedCells.length * 150;
+        gameState.score += score;
+        
+        affectedCells.forEach(({row, col}) => {
+            gameState.grid[row][col] = null;
+            updateCellDisplay(row, col);
+        });
+        
+        showMessage(`💥 炸弹爆炸！获得 ${score} 分！`);
+        
+        setTimeout(() => fillGrid(), 500);
+    }, 600);
+}
+
+function useLightning(row, col) {
+    const affectedCells = [];
+    
+    for (let c = 0; c < 8; c++) {
+        if (gameState.grid[row][c]) {
+            affectedCells.push({ row, col: c });
+        }
+    }
+    
+    for (let r = 0; r < 8; r++) {
+        if (gameState.grid[r][col] && !affectedCells.some(cell => cell.row === r && cell.col === col)) {
+            affectedCells.push({ row: r, col });
+        }
+    }
+    
+    showLightningEffect(row, col);
+    
+    setTimeout(() => {
+        const score = affectedCells.length * 120;
+        gameState.score += score;
+        
+        affectedCells.forEach(({row, col}) => {
+            gameState.grid[row][col] = null;
+            updateCellDisplay(row, col);
+        });
+        
+        showMessage(`⚡ 闪电一击！获得 ${score} 分！`);
+        
+        setTimeout(() => fillGrid(), 500);
+    }, 800);
+}
+
+function useTime() {
+    if (gameState.currentLevel === 0) {
+        showMessage('⏰ 练习模式已经是无限步数了！');
+        gameState.powerUps.time++;
+        updatePowerUpUI();
+        return;
+    }
+    
+    const addedMoves = 20; // 增加20步
+    gameState.moves += addedMoves;
+    
+    showTimeEffect();
+    showMessage(`⏰ 时光倒流！增加 ${addedMoves} 步！`);
+    updateUI();
+}
+
+// 特效函数
 function showExplosionEffect(centerRow, centerCol) {
     const cell = document.querySelector(`[data-row="${centerRow}"][data-col="${centerCol}"]`);
     if (!cell) return;
@@ -2084,7 +1468,6 @@ function showExplosionEffect(centerRow, centerCol) {
     cell.style.position = 'relative';
     cell.appendChild(explosion);
     
-    // 添加爆炸动画CSS
     if (!document.querySelector('#explodeAnimation')) {
         const style = document.createElement('style');
         style.id = 'explodeAnimation';
@@ -2098,152 +1481,7 @@ function showExplosionEffect(centerRow, centerCol) {
         document.head.appendChild(style);
     }
     
-    setTimeout(() => {
-        explosion.remove();
-    }, 600);
-}
-
-function showLightningEffect(row, col) {
-    const gameGrid = document.getElementById('gameGrid');
-    
-    // 创建闪电效果
-    const lightning = document.createElement('div');
-    lightning.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, transparent 45%, #fff3cd 50%, transparent 55%);
-        z-index: 99;
-        animation: lightning 0.8s ease-out forwards;
-        pointer-events: none;
-    `;
-    
-    gameGrid.style.position = 'relative';
-    gameGrid.appendChild(lightning);
-    
-    // 添加闪电动画CSS
-    if (!document.querySelector('#lightningAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'lightningAnimation';
-        style.textContent = `
-            @keyframes lightning {
-                0%, 100% { opacity: 0; }
-                10%, 20%, 30% { opacity: 1; }
-                15%, 25% { opacity: 0.5; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    setTimeout(() => {
-        lightning.remove();
-    }, 800);
-}
-
-function showRainbowEffect() {
-    const gameGrid = document.getElementById('gameGrid');
-    
-    const rainbow = document.createElement('div');
-    rainbow.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, 
-            #ff0000 0%, #ff8000 14%, #ffff00 28%, 
-            #80ff00 42%, #00ff00 57%, #00ff80 71%, 
-            #00ffff 85%, #0080ff 100%);
-        opacity: 0.3;
-        z-index: 99;
-        animation: rainbow 1s ease-in-out forwards;
-        pointer-events: none;
-    `;
-    
-    gameGrid.appendChild(rainbow);
-    
-    // 添加彩虹动画CSS
-    if (!document.querySelector('#rainbowAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'rainbowAnimation';
-        style.textContent = `
-            @keyframes rainbow {
-                0% { opacity: 0; transform: scale(0); }
-                50% { opacity: 0.6; transform: scale(1.1); }
-                100% { opacity: 0; transform: scale(1.2); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    setTimeout(() => {
-        rainbow.remove();
-    }, 1000);
-}
-
-function showHammerEffect(row, col) {
-    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-    if (!cell) return;
-    
-    const hammer = document.createElement('div');
-    hammer.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 2rem;
-        z-index: 100;
-        animation: hammer 0.4s ease-out forwards;
-        pointer-events: none;
-    `;
-    hammer.textContent = '🔨';
-    
-    cell.style.position = 'relative';
-    cell.appendChild(hammer);
-    
-    // 添加锤击动画CSS
-    if (!document.querySelector('#hammerAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'hammerAnimation';
-        style.textContent = `
-            @keyframes hammer {
-                0% { transform: translate(-50%, -100%) rotate(-45deg); }
-                50% { transform: translate(-50%, -50%) rotate(0deg); }
-                100% { transform: translate(-50%, -50%) rotate(0deg) scale(1.5); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    setTimeout(() => {
-        hammer.remove();
-    }, 400);
-}
-
-function showShuffleEffect() {
-    const gameGrid = document.getElementById('gameGrid');
-    
-    gameGrid.style.animation = 'shuffle 1s ease-in-out';
-    
-    // 添加洗牌动画CSS
-    if (!document.querySelector('#shuffleAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'shuffleAnimation';
-        style.textContent = `
-            @keyframes shuffle {
-                0%, 100% { transform: rotate(0deg); }
-                25% { transform: rotate(2deg); }
-                75% { transform: rotate(-2deg); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    setTimeout(() => {
-        gameGrid.style.animation = '';
-    }, 1000);
+    setTimeout(() => explosion.remove(), 600);
 }
 
 function showTimeEffect() {
@@ -2267,7 +1505,6 @@ function showTimeEffect() {
     gameGrid.style.position = 'relative';
     gameGrid.appendChild(timeEffect);
     
-    // 添加时光动画CSS
     if (!document.querySelector('#timeAnimation')) {
         const style = document.createElement('style');
         style.id = 'timeAnimation';
@@ -2281,12 +1518,40 @@ function showTimeEffect() {
         document.head.appendChild(style);
     }
     
-    setTimeout(() => {
-        timeEffect.remove();
-    }, 2000);
+    setTimeout(() => timeEffect.remove(), 2000);
 }
 
-// 更新道具UI
+// 游戏说明
+function showGameGuide() {
+    document.getElementById('gameGuide').style.display = 'flex';
+}
+
+function closeGameGuide() {
+    document.getElementById('gameGuide').style.display = 'none';
+    showScreen('levelSelect');
+}
+
+// 界面控制
+function showScreen(screenName) {
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.style.display = 'none';
+    });
+    document.getElementById(screenName).style.display = 'flex';
+}
+
+function showGameScreen() {
+    showScreen('gameScreen');
+}
+
+function updateUI() {
+    document.getElementById('currentLevel').textContent = gameState.currentLevel || '练习';
+    document.getElementById('score').textContent = gameState.score.toLocaleString();
+    document.getElementById('target').textContent = gameState.target === Infinity ? '∞' : gameState.target.toLocaleString();
+    document.getElementById('moves').textContent = gameState.moves === Infinity ? '∞' : gameState.moves;
+    
+    updatePowerUpUI();
+}
+
 function updatePowerUpUI() {
     Object.keys(gameState.powerUps).forEach(powerType => {
         const button = document.querySelector(`[data-power="${powerType}"]`);
@@ -2295,7 +1560,6 @@ function updatePowerUpUI() {
             if (countElement) {
                 countElement.textContent = gameState.powerUps[powerType];
                 
-                // 道具不足时的视觉提示
                 if (gameState.powerUps[powerType] <= 0) {
                     button.style.opacity = '0.5';
                     countElement.style.backgroundColor = '#999';
@@ -2308,144 +1572,195 @@ function updatePowerUpUI() {
     });
 }
 
-// 初始化道具系统
-function initializePowerUps() {
-    setupPowerUpButtons();
-    updatePowerUpUI();
-}
-// 下一关
-function nextLevel() {
-    if (gameState.currentLevel < LEVELS.length) {
-        startLevel(gameState.currentLevel + 1);
-    } else {
-        backToLevelSelect();
-        showMessage('🎉 恭喜完成所有关卡！');
+function showMessage(message, duration = 3000) {
+    const existingMessage = document.querySelector('.game-message');
+    if (existingMessage) existingMessage.remove();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'game-message';
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        z-index: 1000;
+        text-align: center;
+        font-weight: bold;
+        animation: messageSlide 0.5s ease-out;
+        max-width: 90vw;
+        word-wrap: break-word;
+        font-size: 0.9rem;
+    `;
+    
+    messageDiv.textContent = message;
+    document.body.appendChild(messageDiv);
+    
+    if (!document.querySelector('#messageAnimation')) {
+        const style = document.createElement('style');
+        style.id = 'messageAnimation';
+        style.textContent = `
+            @keyframes messageSlide {
+                from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
     }
+    
+    setTimeout(() => {
+        if (messageDiv.parentNode) messageDiv.remove();
+    }, duration);
 }
 
-// 检查游戏状态
+// 游戏状态检查
 function checkGameStatus() {
-    if (gameState.currentLevel === 0) return; // 练习模式不检查状态
+    if (gameState.currentLevel === 0) return;
     
-    // 检查是否达成目标
     if (gameState.score >= gameState.target) {
         gameState.isGameActive = false;
         gameState.gamesPlayed++;
         gameState.totalScore += gameState.score;
-        
-        // 检查完美通关
-        if (gameState.moves >= 100) {
+// 检查关卡胜利
+        if (gameState.moves >= 30) {
             gameState.perfectGames++;
+            showMessage('👑 完美通关！剩余步数超过30步！');
+            checkAchievements();
         }
         
-        showLevelCompleteDialog();
-    } else if (gameState.moves <= 0) {
-        // 步数用完
+        setTimeout(() => {
+            showLevelComplete();
+        }, 1000);
+        
+    } else if (gameState.moves <= 0 && gameState.score < gameState.target) {
         gameState.isGameActive = false;
-        showGameOverDialog();
+        setTimeout(() => {
+            showGameOver();
+        }, 500);
     }
+    
+    checkAchievements();
 }
 
-// 显示过关对话框
-function showLevelCompleteDialog() {
+// 显示关卡完成
+function showLevelComplete() {
     const level = LEVELS.find(l => l.id === gameState.currentLevel);
-    let message = `🎉 第${gameState.currentLevel}关完成！\n\n`;
-    message += `最终得分: ${gameState.score}\n`;
-    message += `剩余步数: ${gameState.moves}\n`;
     
-    if (gameState.moves >= 100) {
-        message += `\n👑 完美通关奖励！`;
-    }
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.style.display = 'flex';
     
-    if (gameState.maxCombo >= 5) {
-        message += `\n🔥 最高连击: ${gameState.maxCombo}`;
-    }
+    popup.innerHTML = `
+        <div class="popup-content">
+            <h2 style="color: #4CAF50; margin-bottom: 1rem;">🎉 关卡完成！</h2>
+            <div style="margin-bottom: 1.5rem;">
+                <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">第${gameState.currentLevel}关</div>
+                <div style="font-size: 1.5rem; color: #ffd700; font-weight: bold;">${gameState.score.toLocaleString()} 分</div>
+                <div style="margin-top: 0.8rem; font-style: italic; opacity: 0.9;">
+                    ${level?.quote || '恭喜完成关卡！'}
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center;">
+                <button class="menu-btn" onclick="this.closest('.popup').remove(); showScreen('levelSelect');">
+                    选择关卡 📝
+                </button>
+                <button class="menu-btn" onclick="this.closest('.popup').remove(); startLevel(${gameState.currentLevel + 1});">
+                    下一关 ➡️
+                </button>
+                <button class="menu-btn" onclick="this.closest('.popup').remove(); showScreen('mainMenu');">
+                    主菜单 🏠
+                </button>
+            </div>
+        </div>
+    `;
     
-    message += `\n\n💕 ${level?.quote || ''}`;
-    
-    setTimeout(() => {
-        if (confirm(message + '\n\n继续下一关？')) {
-            nextLevel();
-        } else {
-            backToLevelSelect();
-        }
-    }, 1000);
+    document.body.appendChild(popup);
+    playSound('achievement');
 }
 
-// 显示游戏结束对话框
-function showGameOverDialog() {
-    let message = `😔 游戏结束\n\n`;
-    message += `当前得分: ${gameState.score}\n`;
-    message += `目标分数: ${gameState.target}\n`;
-    message += `差距: ${gameState.target - gameState.score}\n\n`;
-    message += `不要气馁，再来一次吧！💪`;
+// 显示游戏结束
+function showGameOver() {
+    const popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.style.display = 'flex';
     
-    setTimeout(() => {
-        if (confirm(message + '\n\n重新开始这一关？')) {
-            restartLevel();
-        } else {
-            backToLevelSelect();
-        }
-    }, 1000);
+    popup.innerHTML = `
+        <div class="popup-content">
+            <h2 style="color: #ff6b6b; margin-bottom: 1rem;">😔 挑战失败</h2>
+            <div style="margin-bottom: 1.5rem;">
+                <div style="margin-bottom: 0.5rem;">第${gameState.currentLevel}关</div>
+                <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">得分: ${gameState.score.toLocaleString()}</div>
+                <div style="opacity: 0.8;">目标: ${gameState.target.toLocaleString()}</div>
+                <div style="margin-top: 1rem; font-style: italic; color: #ffd700;">
+                    "没关系，再试一次！我相信你一定可以的 💪💕"
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center;">
+                <button class="menu-btn" onclick="this.closest('.popup').remove(); restartLevel();">
+                    重新挑战 🔄
+                </button>
+                <button class="menu-btn" onclick="this.closest('.popup').remove(); showScreen('levelSelect');">
+                    选择关卡 📝
+                </button>
+                <button class="menu-btn" onclick="this.closest('.popup').remove(); showScreen('mainMenu');">
+                    主菜单 🏠
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
 }
 
-// 成就系统
+// 成就检查
 function checkAchievements() {
-    const newAchievements = [];
-    
-    // 检查各种成就条件
-    if (gameState.totalMatches >= 1 && !gameState.achievements.has('first_match')) {
-        newAchievements.push('first_match');
+    if (gameState.totalMatches > 0 && !gameState.achievements.has('first_match')) {
+        unlockAchievement('first_match');
     }
     
-    if (gameState.maxCombo >= 10 && !gameState.achievements.has('combo_master')) {
-        newAchievements.push('combo_master');
+    if (gameState.combo >= 10 && !gameState.achievements.has('combo_master')) {
+        unlockAchievement('combo_master');
     }
     
     if (gameState.score >= 5000 && !gameState.achievements.has('score_hunter')) {
-        newAchievements.push('score_hunter');
+        unlockAchievement('score_hunter');
     }
     
-    if (gameState.moves >= 100 && gameState.score >= gameState.target && !gameState.achievements.has('perfect_level')) {
-        newAchievements.push('perfect_level');
+    if (gameState.moves >= 30 && gameState.score >= gameState.target && !gameState.achievements.has('perfect_level')) {
+        unlockAchievement('perfect_level');
     }
     
-    // 检查是否使用过所有道具
-    const usedAllPowerUps = Object.entries(gameState.powerUps).every(([key, count]) => {
-        const initialCounts = {
-            bomb: 10, lightning: 10, rainbow: 8, hammer: 15, shuffle: 8, time: 8
-        };
-        return count < initialCounts[key];
-    });
-    if (usedAllPowerUps && !gameState.achievements.has('power_master')) {
-        newAchievements.push('power_master');
-    }
-    
-    // 特殊成就 - Ashley专属
-    const completedSpecialLevels = LEVELS.filter(l => l.special).every(level => 
-        gameState.currentLevel >= level.id
+    // 检查道具大师成就
+    const usedPowerTypes = Object.keys(gameState.powerUps).filter(type => 
+        gameState.powerUps[type] < (type === 'hammer' ? 8 : type === 'bomb' || type === 'lightning' ? 5 : 3)
     );
-    if (completedSpecialLevels && !gameState.achievements.has('love_master')) {
-        newAchievements.push('love_master');
+    if (usedPowerTypes.length >= 6 && !gameState.achievements.has('power_master')) {
+        unlockAchievement('power_master');
     }
     
-    // 显示新获得的成就
-    newAchievements.forEach((achievementId, index) => {
-        gameState.achievements.add(achievementId);
-        const achievement = ACHIEVEMENTS.find(a => a.id === achievementId);
-        if (achievement) {
-            setTimeout(() => {
-                showAchievement(achievement);
-            }, index * 2000 + Math.random() * 1000);
-        }
-    });
+    // 检查特殊成就
+    if (gameState.gamesPlayed >= 10 && !gameState.achievements.has('ashley_special')) {
+        unlockAchievement('ashley_special');
+    }
+}
+
+function unlockAchievement(achievementId) {
+    if (gameState.achievements.has(achievementId)) return;
     
-    if (newAchievements.length > 0) {
+    gameState.achievements.add(achievementId);
+    const achievement = ACHIEVEMENTS.find(a => a.id === achievementId);
+    
+    if (achievement) {
+        showAchievement(achievement);
         saveGameData();
     }
 }
 
-// 显示成就弹窗
 function showAchievement(achievement) {
     const popup = document.getElementById('achievementPopup');
     const text = document.getElementById('achievementText');
@@ -2464,10 +1779,205 @@ function showAchievement(achievement) {
     }, 3000);
 }
 
-// 显示成就页面
+// 其余功能
+function useRainbow(row, col) {
+    const targetType = gameState.grid[row][col]?.type;
+    if (!targetType) {
+        showMessage('❌ 请选择一个有苹果的位置！');
+        gameState.powerUps.rainbow++;
+        updatePowerUpUI();
+        return;
+    }
+    
+    const affectedCells = [];
+    
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            if (gameState.grid[r][c]?.type === targetType) {
+                affectedCells.push({ row: r, col: c });
+            }
+        }
+    }
+    
+    showRainbowEffect();
+    
+    setTimeout(() => {
+        const score = affectedCells.length * 200;
+        gameState.score += score;
+        
+        affectedCells.forEach(({row, col}) => {
+            gameState.grid[row][col] = null;
+            updateCellDisplay(row, col);
+        });
+        
+        showMessage(`🌈 彩虹消除！获得 ${score} 分！`);
+        
+        setTimeout(() => fillGrid(), 500);
+    }, 1000);
+}
+
+function useHammer(row, col) {
+    if (!gameState.grid[row][col]) {
+        showMessage('❌ 请选择一个有苹果的位置！');
+        gameState.powerUps.hammer++;
+        updatePowerUpUI();
+        return;
+    }
+    
+    gameState.score += 100;
+    gameState.grid[row][col] = null;
+    updateCellDisplay(row, col);
+    
+    showMessage('🔨 锤子敲击！获得 100 分！');
+    
+    setTimeout(() => fillGrid(), 300);
+}
+
+function useShuffle() {
+    const allApples = [];
+    
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            if (gameState.grid[row][col]) {
+                allApples.push(gameState.grid[row][col]);
+                gameState.grid[row][col] = null;
+            }
+        }
+    }
+    
+    // Fisher-Yates洗牌算法
+    for (let i = allApples.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allApples[i], allApples[j]] = [allApples[j], allApples[i]];
+    }
+    
+    let appleIndex = 0;
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+            if (appleIndex < allApples.length) {
+                gameState.grid[row][col] = allApples[appleIndex++];
+                updateCellDisplay(row, col);
+                
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell) {
+                    cell.style.animation = 'shuffleEffect 0.5s ease-out';
+                    setTimeout(() => cell.style.animation = '', 500);
+                }
+            }
+        }
+    }
+    
+    if (!document.querySelector('#shuffleAnimation')) {
+        const style = document.createElement('style');
+        style.id = 'shuffleAnimation';
+        style.textContent = `
+            @keyframes shuffleEffect {
+                0%, 100% { transform: scale(1) rotate(0deg); }
+                50% { transform: scale(1.1) rotate(180deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    showMessage('🔄 棋盘已重新洗牌！');
+}
+
+function showRainbowEffect() {
+    const gameGrid = document.getElementById('gameGrid');
+    
+    const rainbow = document.createElement('div');
+    rainbow.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, 
+            red 0%, orange 15%, yellow 30%, green 45%, 
+            blue 60%, indigo 75%, violet 90%, red 100%);
+        opacity: 0;
+        animation: rainbowPulse 1s ease-out;
+        pointer-events: none;
+        border-radius: 15px;
+    `;
+    
+    gameGrid.style.position = 'relative';
+    gameGrid.appendChild(rainbow);
+    
+    if (!document.querySelector('#rainbowAnimation')) {
+        const style = document.createElement('style');
+        style.id = 'rainbowAnimation';
+        style.textContent = `
+            @keyframes rainbowPulse {
+                0% { opacity: 0; transform: scale(0.8); }
+                50% { opacity: 0.7; transform: scale(1.05); }
+                100% { opacity: 0; transform: scale(1.2); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    setTimeout(() => rainbow.remove(), 1000);
+}
+
+function showLightningEffect(row, col) {
+    const gameGrid = document.getElementById('gameGrid');
+    
+    // 创建水平闪电
+    const horizontalLightning = document.createElement('div');
+    horizontalLightning.style.cssText = `
+        position: absolute;
+        top: ${(row / 8) * 100}%;
+        left: 0;
+        width: 100%;
+        height: ${100/8}%;
+        background: linear-gradient(90deg, transparent 0%, #ffeb3b 50%, transparent 100%);
+        opacity: 0;
+        animation: lightningFlash 0.8s ease-out;
+        pointer-events: none;
+    `;
+    
+    // 创建垂直闪电
+    const verticalLightning = document.createElement('div');
+    verticalLightning.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: ${(col / 8) * 100}%;
+        width: ${100/8}%;
+        height: 100%;
+        background: linear-gradient(180deg, transparent 0%, #ffeb3b 50%, transparent 100%);
+        opacity: 0;
+        animation: lightningFlash 0.8s ease-out 0.2s;
+        pointer-events: none;
+    `;
+    
+    gameGrid.style.position = 'relative';
+    gameGrid.appendChild(horizontalLightning);
+    gameGrid.appendChild(verticalLightning);
+    
+    if (!document.querySelector('#lightningAnimation')) {
+        const style = document.createElement('style');
+        style.id = 'lightningAnimation';
+        style.textContent = `
+            @keyframes lightningFlash {
+                0%, 100% { opacity: 0; }
+                20%, 40%, 60% { opacity: 0.9; }
+                30%, 50% { opacity: 0.3; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    setTimeout(() => {
+        horizontalLightning.remove();
+        verticalLightning.remove();
+    }, 1000);
+}
+
+// 设置和界面功能
 function showAchievements() {
     let html = `
-        <div class="pause-content" style="max-height: 80vh; overflow-y: auto;">
+        <div class="pause-content" style="max-height: 90vh; overflow-y: auto;">
             <h2 style="margin-bottom: 1.5rem; color: #ffd700;">🏆 成就系统</h2>
             <div style="text-align: left;">
     `;
@@ -2494,7 +2004,7 @@ function showAchievements() {
     html += `
             </div>
             <div style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 10px;">
-                <h3 style="margin-bottom: 0.8rem;">🎮 游戏统计</h3>
+                <h3 style="margin-bottom: 0.8rem;">📊 游戏统计</h3>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; text-align: center;">
                     <div>
                         <div style="font-size: 1.5rem; font-weight: bold; color: #4CAF50;">${gameState.gamesPlayed}</div>
@@ -2524,7 +2034,6 @@ function showAchievements() {
     document.getElementById('pauseMenu').style.display = 'flex';
 }
 
-// 显示专属情话页面
 function showLoveMessages() {
     const loveMessages = [
         "亲爱的Ashley，你就像这游戏中的彩虹道具，能消除我心中所有的烦恼 🌈💕",
@@ -2540,7 +2049,7 @@ function showLoveMessages() {
     ];
     
     let html = `
-        <div class="pause-content" style="max-height: 80vh; overflow-y: auto;">
+        <div class="pause-content" style="max-height: 90vh; overflow-y: auto;">
             <h2 style="margin-bottom: 1.5rem; color: #ffd700;">💕 专属情话</h2>
             <div style="text-align: left;">
     `;
@@ -2574,7 +2083,6 @@ function showLoveMessages() {
     document.getElementById('pauseMenu').style.display = 'flex';
 }
 
-// 显示设置页面
 function showSettings() {
     let html = `
         <div class="pause-content">
@@ -2605,7 +2113,7 @@ function showSettings() {
                     希望你能在游戏中感受到满满的爱和快乐！
                 </p>
                 <div style="text-align: center; font-size: 0.8rem; color: #ffd700;">
-                    💕 Version 2.0 - Enhanced Edition 💕
+                    💕 Version 3.0 - Optimized Edition 💕
                 </div>
             </div>
             
@@ -2619,21 +2127,18 @@ function showSettings() {
     document.getElementById('pauseMenu').style.display = 'flex';
 }
 
-// 音效开关
 function toggleSound() {
     gameState.soundEnabled = !gameState.soundEnabled;
     saveGameData();
-    showSettings(); // 刷新设置页面
+    showSettings();
     
     showMessage(gameState.soundEnabled ? '🔊 音效已开启' : '🔇 音效已关闭');
 }
 
-// 清除游戏数据
 function clearGameData() {
     if (confirm('⚠️ 确定要清除所有游戏数据吗？\n这将删除所有成就和统计数据！')) {
         localStorage.removeItem('ashleyAppleGameData');
         
-        // 重置游戏状态
         gameState.achievements.clear();
         gameState.totalScore = 0;
         gameState.gamesPlayed = 0;
@@ -2641,41 +2146,11 @@ function clearGameData() {
         gameState.maxCombo = 0;
         
         showMessage('🗑️ 游戏数据已清除');
-        showSettings(); // 刷新设置页面
+        showSettings();
     }
 }
 
-// 界面控制函数
-function showScreen(screenName) {
-    document.querySelectorAll('.screen').forEach(screen => {
-        screen.style.display = 'none';
-    });
-    document.getElementById(screenName).style.display = 'flex';
-}
-
-function showGameScreen() {
-    showScreen('gameScreen');
-}
-
-function showLevelSelect() {
-    showScreen('levelSelect');
-}
-
-function backToMainMenu() {
-    gameState.isGameActive = false;
-    gameState.isPaused = false;
-    closePauseMenu();
-    showScreen('mainMenu');
-}
-
-function backToLevelSelect() {
-    gameState.isGameActive = false;
-    gameState.isPaused = false;
-    closePauseMenu();
-    showScreen('levelSelect');
-}
-
-// 游戏控制函数
+// 游戏控制
 function pauseGame() {
     if (!gameState.isGameActive) return;
     
@@ -2692,11 +2167,11 @@ function showPauseMenu() {
     let html = `
         <div class="pause-content">
             <h3>⏸️ 游戏暂停</h3>
-            <div class="pause-buttons">
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
                 <button class="menu-btn" onclick="resumeGame()">继续游戏 ▶️</button>
                 <button class="menu-btn" onclick="restartLevel()">重新开始 🔄</button>
-                <button class="menu-btn" onclick="backToLevelSelect()">返回选关 ⬅️</button>
-                <button class="menu-btn" onclick="backToMainMenu()">主菜单 🏠</button>
+                <button class="menu-btn" onclick="showScreen('levelSelect'); closePauseMenu();">返回选关 ⬅️</button>
+                <button class="menu-btn" onclick="showScreen('mainMenu'); closePauseMenu();">主菜单 🏠</button>
             </div>
         </div>
     `;
@@ -2714,7 +2189,6 @@ function restartLevel() {
     startLevel(gameState.currentLevel);
 }
 
-// 提示系统
 function showHint() {
     if (!gameState.isGameActive || gameState.isPaused) return;
     
@@ -2724,7 +2198,6 @@ function showHint() {
         return;
     }
     
-    // 随机选择一个可能的移动并高亮显示
     const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
     highlightHint(randomMove.from.row, randomMove.from.col, randomMove.to.row, randomMove.to.col);
     
@@ -2745,7 +2218,6 @@ function highlightHint(fromRow, fromCol, toRow, toCol) {
         }, 2000);
     }
     
-    // 添加提示动画CSS
     if (!document.querySelector('#hintAnimation')) {
         const style = document.createElement('style');
         style.id = 'hintAnimation';
@@ -2759,13 +2231,11 @@ function highlightHint(fromRow, fromCol, toRow, toCol) {
     }
 }
 
-// 寻找可能的移动
 function findPossibleMoves() {
     const possibleMoves = [];
     
     for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
-            // 检查右侧交换
             if (col < 7) {
                 const temp = gameState.grid[row][col];
                 gameState.grid[row][col] = gameState.grid[row][col + 1];
@@ -2778,12 +2248,10 @@ function findPossibleMoves() {
                     });
                 }
                 
-                // 恢复
                 gameState.grid[row][col + 1] = gameState.grid[row][col];
                 gameState.grid[row][col] = temp;
             }
             
-            // 检查下方交换
             if (row < 7) {
                 const temp = gameState.grid[row][col];
                 gameState.grid[row][col] = gameState.grid[row + 1][col];
@@ -2796,7 +2264,6 @@ function findPossibleMoves() {
                     });
                 }
                 
-                // 恢复
                 gameState.grid[row + 1][col] = gameState.grid[row][col];
                 gameState.grid[row][col] = temp;
             }
@@ -2806,146 +2273,7 @@ function findPossibleMoves() {
     return possibleMoves;
 }
 
-// UI更新
-function updateUI() {
-    document.getElementById('currentLevel').textContent = gameState.currentLevel || '练习';
-    document.getElementById('score').textContent = gameState.score.toLocaleString();
-    document.getElementById('target').textContent = gameState.target === Infinity ? '∞' : gameState.target.toLocaleString();
-    document.getElementById('moves').textContent = gameState.moves === Infinity ? '∞' : gameState.moves;
-    
-    updatePowerUpUI();
-}
-
-// 消息显示
-function showMessage(message, duration = 3000) {
-    // 移除现有消息
-    const existingMessage = document.querySelector('.game-message');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
-    
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'game-message';
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 1rem 2rem;
-        border-radius: 25px;
-        z-index: 1000;
-        text-align: center;
-        font-weight: bold;
-        animation: messageSlide 0.5s ease-out;
-        max-width: 90vw;
-        word-wrap: break-word;
-    `;
-    
-    messageDiv.textContent = message;
-    document.body.appendChild(messageDiv);
-    
-    // 添加消息动画CSS
-    if (!document.querySelector('#messageAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'messageAnimation';
-        style.textContent = `
-            @keyframes messageSlide {
-                from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-                to { transform: translateX(-50%) translateY(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.remove();
-        }
-    }, duration);
-}
-
-// 特殊日期效果
-function createBirthdayEffect() {
-    const effect = document.getElementById('specialDateEffect');
-    for (let i = 0; i < 50; i++) {
-        const cake = document.createElement('div');
-        cake.innerHTML = '🎂';
-        cake.style.cssText = `
-            position: absolute;
-            font-size: 2rem;
-            left: ${Math.random() * 100}%;
-            animation: birthdayFloat ${Math.random() * 3 + 4}s linear infinite;
-            animation-delay: ${Math.random() * 5}s;
-        `;
-        effect.appendChild(cake);
-    }
-    
-    if (!document.querySelector('#birthdayAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'birthdayAnimation';
-        style.textContent = `
-            @keyframes birthdayFloat {
-                0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-                10% { opacity: 1; }
-                90% { opacity: 1; }
-                100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-function createValentineEffect() {
-    const effect = document.getElementById('specialDateEffect');
-    const hearts = ['💕', '💖', '💗', '💝', '💘'];
-    
-    for (let i = 0; i < 30; i++) {
-        const heart = document.createElement('div');
-        heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
-        heart.style.cssText = `
-            position: absolute;
-            font-size: 2rem;
-            left: ${Math.random() * 100}%;
-            animation: valentineFloat ${Math.random() * 4 + 5}s ease-in-out infinite;
-            animation-delay: ${Math.random() * 6}s;
-        `;
-        effect.appendChild(heart);
-    }
-    
-    if (!document.querySelector('#valentineAnimation')) {
-        const style = document.createElement('style');
-        style.id = 'valentineAnimation';
-        style.textContent = `
-            @keyframes valentineFloat {
-                0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
-                10%, 90% { opacity: 1; }
-                50% { transform: translateY(50vh) scale(1); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-// 数据存储
-function saveGameData() {
-    const data = {
-        achievements: Array.from(gameState.achievements),
-        totalScore: gameState.totalScore,
-        gamesPlayed: gameState.gamesPlayed,
-        perfectGames: gameState.perfectGames,
-        maxCombo: gameState.maxCombo,
-        soundEnabled: gameState.soundEnabled
-    };
-    
-    try {
-        localStorage.setItem('ashleyAppleGameData', JSON.stringify(data));
-    } catch (e) {
-        console.warn('无法保存游戏数据:', e);
-    }
-}
-
+// 数据存储 (继续)
 function loadGameData() {
     try {
         const data = localStorage.getItem('ashleyAppleGameData');
@@ -2963,7 +2291,53 @@ function loadGameData() {
     }
 }
 
-// 事件监听器设置
+// 特殊日期检查
+function checkSpecialDate() {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    
+    // 可以添加特殊日期的彩蛋
+    const specialDates = [
+        { month: 2, day: 14, message: "💕 情人节快乐！Ashley，你是我的唯一！", effect: 'hearts' },
+        { month: 12, day: 25, message: "🎄 圣诞快乐！愿我们永远幸福甜蜜！", effect: 'snow' },
+        { month: 1, day: 1, message: "🎉 新年快乐！新的一年也要一起加油！", effect: 'fireworks' }
+    ];
+    
+    const specialDate = specialDates.find(d => d.month === month && d.day === day);
+    if (specialDate) {
+        setTimeout(() => {
+            showMessage(specialDate.message, 5000);
+            createSpecialEffect(specialDate.effect);
+        }, 1000);
+    }
+}
+
+// 特殊效果
+function createSpecialEffect(effect) {
+    const container = document.getElementById('specialDateEffect');
+    container.innerHTML = '';
+    
+    switch (effect) {
+        case 'hearts':
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = ['💕', '💖', '💗', '💝', '💘', '❤️'][Math.floor(Math.random() * 6)];
+                heart.style.cssText = `
+                    position: absolute;
+                    font-size: 2rem;
+                    left: ${Math.random() * 100}%;
+                    animation: heartFloat ${Math.random() * 4 + 6}s linear infinite;
+                    animation-delay: ${Math.random() * 5}s;
+                    pointer-events: none;
+                `;
+                container.appendChild(heart);
+            }
+            break;
+    }
+}
+
+// 设置事件监听器
 function setupEventListeners() {
     // 防止页面滚动
     document.addEventListener('touchmove', function(e) {
@@ -2971,46 +2345,175 @@ function setupEventListeners() {
     }, { passive: false });
     
     // 防止双击缩放
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(e) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-            e.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
-    
-    // 键盘支持（可选）
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && gameState.isGameActive) {
-            if (gameState.isPaused) {
-                resumeGame();
-            } else {
-                pauseGame();
-            }
-        }
+    document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
     });
     
-    // 初始化道具按钮
-    initializePowerUps();
+    // 监听设备方向改变
+    window.addEventListener('orientationchange', function() {
+        setTimeout(updateGameLayout, 100);
+    });
+    
+    // 监听窗口大小改变
+    window.addEventListener('resize', updateGameLayout);
+    
+    // 设置道具按钮
+    setupPowerUpButtons();
+    
+    // 监听页面可见性变化
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && gameState.isGameActive && !gameState.isPaused) {
+            pauseGame();
+        }
+    });
 }
 
-// 页面加载完成后初始化游戏
-document.addEventListener('DOMContentLoaded', function() {
-    initializeGame();
-});
-
-// 页面离开时保存数据
-window.addEventListener('beforeunload', function() {
-    saveGameData();
-});
-
-// 定期保存数据
-setInterval(() => {
-    if (gameState.isGameActive) {
-        saveGameData();
+// 更新游戏布局
+function updateGameLayout() {
+    // 确保游戏网格始终适应屏幕
+    const gameGrid = document.getElementById('gameGrid');
+    if (gameGrid) {
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const availableSize = Math.min(viewportWidth * 0.9, viewportHeight * 0.5);
+        
+        gameGrid.style.width = availableSize + 'px';
+        gameGrid.style.height = availableSize + 'px';
     }
-}, 30000); // 每30秒保存一次
+    
+    // 强制重新计算布局
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+    }, 100);
+}
+
+// 性能优化函数
+function optimizePerformance() {
+    // 使用 requestAnimationFrame 优化动画
+    let animationFrame;
+    
+    function animate() {
+        // 这里可以放置需要持续更新的动画逻辑
+        animationFrame = requestAnimationFrame(animate);
+    }
+    
+    // 启动动画循环
+    animate();
+    
+    // 在页面卸载时清理
+    window.addEventListener('beforeunload', () => {
+        if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+        }
+    });
+}
+
+// 错误处理
+window.addEventListener('error', function(e) {
+    console.error('游戏错误:', e.error);
+    showMessage('⚠️ 游戏出现了小问题，但不要担心，可以继续游戏！');
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('未处理的Promise错误:', e.reason);
+});
+
+// PWA支持
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').then(function(registration) {
+            console.log('SW registered: ', registration);
+        }).catch(function(registrationError) {
+            console.log('SW registration failed: ', registrationError);
+        });
+    });
+}
+
+// 触摸优化
+function optimizeTouchHandling() {
+    let touchStartTime;
+    let touchStartPos;
+    
+    document.addEventListener('touchstart', function(e) {
+        touchStartTime = Date.now();
+        touchStartPos = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY
+        };
+    }, { passive: true });
+    
+    document.addEventListener('touchend', function(e) {
+        const touchEndTime = Date.now();
+        const touchDuration = touchEndTime - touchStartTime;
+        
+        // 如果触摸时间太长，可能是意外触摸
+        if (touchDuration > 300) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+}
+
+// 内存管理
+function manageMemory() {
+    // 定期清理不需要的DOM元素
+    setInterval(() => {
+        const messages = document.querySelectorAll('.game-message');
+        messages.forEach(msg => {
+            if (msg.style.opacity === '0' || !msg.parentNode) {
+                msg.remove();
+            }
+        });
+        
+        // 清理动画元素
+        const animations = document.querySelectorAll('[style*="animation"]');
+        animations.forEach(el => {
+            if (el.style.animation === '') {
+                el.removeAttribute('style');
+            }
+        });
+    }, 30000);
+}
+
+// 初始化完整游戏
+function initCompleteGame() {
+    // 基础初始化
+    initializeGame();
+    
+    // 性能优化
+    optimizePerformance();
+    optimizeTouchHandling();
+    manageMemory();
+    
+    // 布局适配
+    updateGameLayout();
+    
+    // 显示加载完成
+    setTimeout(() => {
+        showMessage('🎮 Ashley专属苹果消消乐已就绪！', 2000);
+    }, 500);
+}
+
+// 页面加载完成后启动游戏
+document.addEventListener('DOMContentLoaded', initCompleteGame);
+
+// 导出游戏状态（用于调试）
+window.gameDebug = {
+    getState: () => gameState,
+    unlockAllAchievements: () => {
+        ACHIEVEMENTS.forEach(achievement => {
+            unlockAchievement(achievement.id);
+        });
+    },
+    addPowerUps: () => {
+        Object.keys(gameState.powerUps).forEach(key => {
+            gameState.powerUps[key] += 10;
+        });
+        updatePowerUpUI();
+    },
+    skipToLevel: (levelId) => {
+        startLevel(levelId);
+    }
+};
 
 </script>
 </body>
